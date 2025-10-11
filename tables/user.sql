@@ -1,0 +1,12 @@
+CREATE TABLE user(
+    user_id INT AUTO_INCREMENT PRIMARY KEY, 
+    username VARCHAR(45) NOT NULL, 
+    hash TEXT NOT NULL,
+    email VARCHAR(100) NOT NULL, 
+    status SMALLINT NOT NULL DEFAULT 0, 
+    reset_token TEXT, 
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_user_id ON user(user_id);

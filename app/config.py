@@ -1,5 +1,12 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
 class Config:
-    DB_HOST = "localhost"
-    DB_USER = "test"
-    DB_PASSWORD = "password"
-    DB_NAMe = "test"
+    SECRET_KEY = os.environ.get("SECRET_KEY", "mysuper_secret")
+    DB_HOST = os.getenv("DB_HOST")
+    DB_USER = os.getenv("DB_USER")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_NAME = os.getenv("DB_NAME")
