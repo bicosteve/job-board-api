@@ -5,7 +5,7 @@ from flask import Flask
 
 load_dotenv()
 
-from .db import close_db
+from .db.db import close_db
 from .routes import register_routes
 
 
