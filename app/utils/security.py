@@ -36,7 +36,7 @@ class Security:
     def create_jwt_token(profile_id, email) -> str:
         """Generate jwt token with profile_id and email as payload"""
 
-        exp_time = Security._now + datetime.timedelta(hours=24 * 4)
+        exp_time = Security._now + datetime.timedelta(hours=24 * 1)
         payload = {
             "profile_id": profile_id,
             "email": email,
