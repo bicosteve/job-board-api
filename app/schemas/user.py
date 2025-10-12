@@ -50,3 +50,21 @@ class LoginSchema(Schema):
         ],
         error_messages={"required": "Password field is required"},
     )
+
+
+class VerifyAccountSchema(Schema):
+    email = fields.Email(
+        required=True,
+        validate=[
+            validate.Length(min=1, error="Email cannot be empty"),
+            validate.Email(),
+        ],
+        error_messages={"required": "Email field is required"},
+    )
+    verification_code = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=1, error="Verification code cannot be empty"),
+        ],
+        error_messages={"required": "Verification code field is required"},
+    )

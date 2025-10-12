@@ -10,6 +10,8 @@ pymysql = "*"
 python-dotenv = "*"
 flask-marshmallow = "*"
 bcrypt = "*"
+pyjwt = "*"
+redis = "*"
 
 [dev-packages]
 
