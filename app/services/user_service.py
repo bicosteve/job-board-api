@@ -30,6 +30,8 @@ class UserService:
         user = UserRepository.find_user_by_mail(email)
         if not user:
             raise InvalidCredentialsError("Invalid email")
+        if user["status"] != 1:
+            raise InvalidCredentialsError("Your account is not verified")
         if not Security.check_password(password, user["hash"]):
             raise InvalidCredentialsError("Invalid email or password")
         return user
