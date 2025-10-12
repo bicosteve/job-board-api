@@ -8,6 +8,8 @@ flask = "==2.3.3"
 flask-restful = "==0.3.10"
 pymysql = "*"
 python-dotenv = "*"
+flask-marshmallow = "*"
+bcrypt = "*"
 
 [dev-packages]
 
