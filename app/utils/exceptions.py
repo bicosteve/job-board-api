@@ -14,3 +14,9 @@ class GenericDatabaseError(Exception):
     """Raised when tables operations fail"""
 
     pass
+
+
+class InvalidLoginAttemptError(Exception):
+    """Raised when user tries to log into unverified account"""
+
+    pass

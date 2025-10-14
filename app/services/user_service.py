@@ -5,6 +5,7 @@ from ..utils.exceptions import (
     InvalidCredentialsError,
     UserExistError,
     GenericDatabaseError,
+    InvalidLoginAttemptError,
 )
 
 
@@ -31,7 +32,7 @@ class UserService:
         if not user:
             raise InvalidCredentialsError("Invalid email")
         if user["status"] != 1:
-            raise InvalidCredentialsError("Your account is not verified")
+            raise InvalidLoginAttemptError("Your account is not verified")
         if not Security.check_password(password, user["hash"]):
             raise InvalidCredentialsError("Invalid email or password")
         return user
@@ -39,7 +40,6 @@ class UserService:
     @staticmethod
     def register_user(username, email, password):
         exists = UserRepository.find_user_by_mail(email)
-        print(exists)
         if exists:
             raise UserExistError("user already exists")
         hash = Security.hash_password(password)
