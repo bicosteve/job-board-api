@@ -1,4 +1,10 @@
-from marshmallow import Schema, fields, validate, validates_schema, ValidationError
+from marshmallow import (
+    Schema,
+    fields,
+    validate,
+    validates_schema,
+    ValidationError,
+)
 
 
 class RegisterSchema(Schema):

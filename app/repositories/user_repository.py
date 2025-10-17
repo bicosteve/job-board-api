@@ -12,8 +12,9 @@ class UserRepository:
             conn = get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
-                SELECT profile_id,email,hash,status,created_at 
-                FROM profile WHERE email = %s
+                SELECT profile_id,email,hash,status,created_at
+                FROM profile
+                WHERE email = %s
                 """
                 cursor.execute(query, (email,))
                 row = cursor.fetchone()
