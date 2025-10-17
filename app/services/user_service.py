@@ -60,5 +60,5 @@ class UserService:
             if not UserCache.verify_code(email, code):
                 return False
             return UserRepository.update_user_status(email) > 0
-        except GenericDatabaseError as e:
-            return False
+        except Exception as e:
+            raise GenericDatabaseError(str(e))
