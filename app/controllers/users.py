@@ -64,7 +64,8 @@ class UserLogin(Resource):
 
         try:
             user = UserService.get_user(email, password)
-            token = Security.create_jwt_token(user["profile_id"], user["email"])
+            token = Security.create_jwt_token(
+                user["profile_id"], user["email"])
             response = make_response(
                 jsonify(
                     {
