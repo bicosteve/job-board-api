@@ -1,12 +1,10 @@
-import os
-
 from dotenv import load_dotenv
 from flask import Flask
 
-load_dotenv()
-
 from .db.db import close_db
 from .routes import register_routes
+
+load_dotenv()
 
 
 def create_app():
