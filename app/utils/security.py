@@ -44,7 +44,8 @@ class Security:
             "iat": Security._now,
         }
 
-        token = jwt.encode(payload, Security._secret, algorithm=Security._algorithm)
+        token = jwt.encode(payload, Security._secret,
+                           algorithm=Security._algorithm)
 
         return token
 
