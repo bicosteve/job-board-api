@@ -16,3 +16,4 @@ PyJWT==2.10.1
 redis==6.4.0
 black==25.9.0
 itsdangerous==2.2.0
+PyMySQL==1.1.2
