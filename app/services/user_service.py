@@ -52,7 +52,7 @@ class UserService:
     def register_user(username, email, password):
         exists = UserRepository.find_user_by_mail(email)
         if exists:
-            Loggger.warn(f'user does not exist for email {email}')
+            Loggger.warn(f'User already exist for email {email}')
             raise UserExistError("user already exists")
         hash = Security.hash_password(password)
         status = 0
@@ -93,7 +93,7 @@ class UserService:
                     'An error occurred while storing reset token in redis')
                 raise GenericRedisError(
                     'An error occurred while storing reset token in redis')
-            if not UserRepository.store_reset_token(token) > 0:
+            if not UserRepository.store_reset_token(email, token) > 0:
                 Loggger.error(
                     'An error occured while storing reset token')
                 raise GenericDatabaseError(
