@@ -1,7 +1,11 @@
 import logging
 
+format = (
+    '%(asctime)s-%(levelname)s-'
+    '%(filename)s:%(lineno)d-%(funcName)s-%(message)s'
+)
 logging.basicConfig(
-    format='%(asctime)s-%(levelname)s-%(filename)s:%(lineno)d-%(funcName)s-%(message)s',
+    format=format,
     datefmt="%Y-%m-%d %H:%M",
     level=logging.DEBUG
 )

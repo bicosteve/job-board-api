@@ -182,7 +182,8 @@ class ResetPasswordRequest(Resource):
             token_data = UserService.store_reset_token(email)
             if not token_data:
                 Loggger.warn('An error occurred while storing reset token')
-                return {'error': 'An error occurred while storing reset token'}, 500
+                return {'error':
+                        'An error occurred while storing reset token'}, 500
             return {'data': token_data}, 201
         except Exception as e:
             Loggger.exception(str(e))
