@@ -60,11 +60,14 @@ class TestSecurity(unittest.TestCase):
         self.assertIn('Invalid token', str(context.exception))
 
     def test_decode_jwt_expired_token(self):
+        time_one = datetime.datetime.now(datetime.timezone.utc)
+        time_two = datetime.timedelta(seconds=1)
+        iat_time = datetime.datetime.now(datetime.timezone.utc)
         expired_payload = {
             'profile_id': self.profile_id,
             'email': self.email,
-            'exp': int((datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=1)).timestamp()),
-            'iat': int(datetime.datetime.now(datetime.timezone.utc).timestamp())
+            'exp': int((time_one - time_two).timestamp()),
+            'iat': int(iat_time.timestamp())
         }
 
         token = jwt.encode(
