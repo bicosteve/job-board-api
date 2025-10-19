@@ -12,6 +12,8 @@ flask-marshmallow = "*"
 bcrypt = "*"
 pyjwt = "*"
 redis = "*"
+black = "*"
+itsdangerous = "*"
 
 [dev-packages]
 
