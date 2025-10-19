@@ -3,6 +3,7 @@ name: Lint, Test, Secure
 on:
   push:
     branches:
+      - main
       - "feat/*"
       - "fix/*"
 
@@ -37,7 +38,7 @@ jobs:
 
       - name: Install dependancies
         run: |
-          python -m pip install --upgrade pip 
+          python -m pip install --upgrade pip
           pip install flake8 autopep8
 
       - name: Check formatting (autopep8)

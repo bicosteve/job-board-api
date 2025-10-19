@@ -87,7 +87,7 @@ class UserRepository:
                 cursor.execute(query, (email, hash, status))
                 conn.commit()
 
-                return cursor.rowcount()
+                return cursor.rowcount
 
         except pymysql.MySQLError as e:
             Loggger.error(f'{str(e)}')
@@ -107,7 +107,7 @@ class UserRepository:
                 cursor.execute(query, (email,))
                 conn.commit()
 
-                return cursor.rowcount()
+                return cursor.rowcount
 
         except pymysql.MySQLError as e:
             Loggger.error(f'{str(e)}')
@@ -127,7 +127,7 @@ class UserRepository:
                 '''
                 cursor.execute(query, (token, email))
                 conn.commit()
-                return cursor.rowcount()
+                return cursor.rowcount
         except pymysql.MySQLError as e:
             Loggger.error(f'{str(e)}')
             raise GenericDatabaseError(str(e))
@@ -173,7 +173,7 @@ class UserRepository:
                 '''
                 cursor.execute(query, (password, email))
                 conn.commit()
-                return cursor.rowcount()
+                return cursor.rowcount
         except pymysql.MySQLError as e:
             Loggger.error(f'{str(e)}')
             raise GenericDatabaseError(str(e))

@@ -29,7 +29,7 @@ class UserRegister(Resource):
         try:
             data = UserRegister.register_schema.load(request.get_json())
         except ValidationError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'Validation failed during registration {str(e)}')
             return {"error": str(e)}, 400
 
         email = data["email"]
@@ -37,26 +37,38 @@ class UserRegister(Resource):
         username = data["email"].split("@")[0]
 
         try:
+            Loggger.info(f'Attempting to register user: {email}')
             user = UserService.register_user(username, email, password)
-            if user and user["rows_affected"] > 0:
-                code = Helpers.generate_verification_code()
-                if UserService.store_verification_code(email, code):
-                    return {
-                        "msg": "user created",
-                        "verification_code": code,
-                        "email": email,
-                    }, 201
-                else:
-                    return {"msg": "Verification code error"}, 500
+
+            if not user or user.get('rows_affected', 0) < 1:
+                Loggger.error(f'User registration failed for {email}')
+                return {'msg': 'User registration failed'}, 500
+
+            code = Helpers.generate_verification_code()
+            if not UserService.store_verification_code(email, code):
+                Loggger.error(f'Failed to store verification code for {email}')
+                return {'msg': 'Verification code error'}, 500
+
+            Loggger.info(f'User registered successfully: {email}')
+            return {
+                "msg": "user created",
+                "verification_code": code,
+                "email": email,
+            }, 201
+
         except UserExistError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'User already exists: {email}-{e}')
             return {"user_error": str(e)}, 400
+
         except GenericDatabaseError as e:
-            Loggger.exception(str(e))
+            Loggger.error(
+                f'Database error during registration for {email}-{str(e)}')
             return {"db_error": str(e)}, 500
+
         except Exception as e:
-            Loggger.exception(str(e))
-            return {"generic_error": str(e)}, 500
+            Loggger.exception(
+                f'Unexpected error during registration for {email} : {str(e)}')
+            return {"generic_error": 'An unexpected error occurred'}, 500
 
 
 class UserLogin(Resource):
@@ -66,7 +78,7 @@ class UserLogin(Resource):
         try:
             data = UserLogin.login_schema.load(request.get_json())
         except ValidationError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'Failed payload validation on login {str(e)}')
             return {"error": str(e)}, 400
 
         email = data["email"]
@@ -74,8 +86,15 @@ class UserLogin(Resource):
 
         try:
             user = UserService.get_user(email, password)
+            error = f'Failed to get user with email {email} on login'
+            if not user:
+                Loggger.warn(error)
+                return {'msg': error}, 404
             token = Security.create_jwt_token(
                 user["profile_id"], user["email"])
+            if token is None:
+                Loggger.warn(f"Failed to generate token for {email}")
+                return {'msg': 'Token generation error'}, 500
             response = make_response(
                 jsonify(
                     {
@@ -85,17 +104,18 @@ class UserLogin(Resource):
                 ),
                 200,
             )
+            Loggger.info(f'Login success {response}')
             response.headers["Authorization"] = f"Bearer {token}"
             return response
         except GenericDatabaseError as e:
-            Loggger.exception(str(e))
-            return {"error": str(e)}, 500
+            Loggger.error(f'DB error during login {str(e)}')
+            return {"db_error": str(e)}, 500
         except InvalidCredentialsError as e:
-            Loggger.exception(str(e))
-            return {"error": str(e)}, 401
+            Loggger.warn(f'Invalid credentials error {str(e)}')
+            return {"credentials_error": str(e)}, 401
         except Exception as e:
-            Loggger.exception(str(e))
-            return {"error": str(e)}, 500
+            Loggger.exception(f'Unexpected error during login {str(e)}')
+            return {"generic_error": str(e)}, 500
 
 
 class UserProfile(Resource):
@@ -113,26 +133,28 @@ class UserProfile(Resource):
 
         try:
             payload = Security.decode_jwt_token(token)
-            profile_id = payload.get("profile_id")
+            profile_id = payload.get("profile_id", "")
 
             if not profile_id:
+                Loggger.warn('Profile id not found for user')
                 return {"error": "Invalid payload"}, 401
 
             user = UserService.get_user_profile(profile_id)
             if not user:
-                Loggger.warn(f"User with profile {profile_id}")
+                Loggger.warn(f"No user with profile {profile_id}")
                 return {"error": "User not found"}, 404
 
+            Loggger.info(f'Returning profile {user}')
             return user, 200
 
         except ExpiredSignatureError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'Expired token signature {str(e)}')
             return {"error": "token has expired"}, 401
         except InvalidTokenError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'Invalid token signature {str(e)}')
             return {"error": "Invalid token"}, 401
         except Exception as e:
-            Loggger.exception(str(e))
+            Loggger.exception(f'Unexpected error occured {str(e)}')
             return {"error": str(e)}, 500
 
 
@@ -144,25 +166,26 @@ class UserVerifyAccount(Resource):
             data = UserVerifyAccount.verify_account_schema.load(
                 request.get_json())
         except ValidationError as e:
-            Loggger.exception(str(e))
-            return {"error": str(e)}, 400
+            Loggger.warn(f'An error occured while validating payload {str(e)}')
+            return {"validation_error": str(e)}, 400
 
-        email = data["email"]
-        verification_code = data["verification_code"]
+        email = data.get("email")
+        verification_code = data.get("verification_code")
 
         try:
             is_verified = UserService.verify_account(email, verification_code)
             if not is_verified:
+                Loggger.warn(f'Error while verifying account {email}')
                 return {"error": "error while verifying account"}, 500
             return {"error": "account verification success"}, 200
         except UserExistError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'{str(e)}')
             return {"user_error": str(e)}, 400
         except GenericDatabaseError as e:
-            Loggger.exception(str(e))
+            Loggger.warn(f'DB error {str(e)} during account verification')
             return {"db_error": str(e)}, 500
         except Exception as e:
-            Loggger.exception(str(e))
+            Loggger.exception(f'Unexpected error occurred {str(e)}')
             return {"generic_error": str(e)}, 500
 
 
@@ -174,11 +197,11 @@ class ResetPasswordRequest(Resource):
             data = ResetPasswordRequest.request_reset_password_schema.load(
                 request.get_json())
         except ValidationError as e:
-            Loggger.exception(str(e))
-            return {'error': str(e)}, 400
+            Loggger.warn(f'Error while validating payload {str(e)}')
+            return {'validation_error': str(e)}, 400
 
         try:
-            email = data['email']
+            email = data.get('email', "")
             token_data = UserService.store_reset_token(email)
             if not token_data:
                 Loggger.warn('An error occurred while storing reset token')
@@ -186,7 +209,7 @@ class ResetPasswordRequest(Resource):
                         'An error occurred while storing reset token'}, 500
             return {'data': token_data}, 201
         except Exception as e:
-            Loggger.exception(str(e))
+            Loggger.exception(f'Unexpected error {str(e)} occurred')
             return {'generic_error': str(e)}, 500
 
 
@@ -197,14 +220,16 @@ class AccountPasswordReset(Resource):
         token = request.args.get('token')
         if len(token) < 1:
             Loggger.warn('No reset token provided in the request')
-            return {'error': 'Token is required'}
+            return {'validation_error': 'Token is required'}
 
         try:
             data = AccountPasswordReset.reset_password_schema.load(
                 request.get_json())
-
+        except ValidationError as e:
+            Loggger.warn(f'Error validating the payload {str(e)}')
+            return {'validation_error': f'payload error {str(e)}'}
         except Exception as e:
-            Loggger.exception(str(e))
+            Loggger.exception(f'Unexpected error {str(e)} occurred')
             return {'generic_error': str(e)}, 500
 
         try:
@@ -218,5 +243,5 @@ class AccountPasswordReset(Resource):
                 return {'error': f'Failed to reset password for {email}'}, 500
             return {'msg': 'Password changed successfully'}, 200
         except Exception as e:
-            Loggger.exception(str(e))
-            return str(e)
+            Loggger.exception(f'Unexpected error {str(e)} occurred')
+            return {'generic_error': str(e)}, 500
