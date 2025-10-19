@@ -74,3 +74,36 @@ class VerifyAccountSchema(Schema):
         ],
         error_messages={"required": "Verification code field is required"},
     )
+
+
+class RequestResetPasswordSchema(Schema):
+    email = fields.Email(
+        required=True,
+        validate=[
+            validate.Length(min=1, error="Email cannot be empty"),
+            validate.Email(),
+        ],
+        error_messages={"required": "Email field is required"},
+    )
+
+
+class ResetPasswordSchema(Schema):
+    password = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=1, error="Email cannot be empty")]
+    )
+    confirm_password = fields.Str(
+        required=True,
+        validate=[validate.Length(
+            min=1, error='Password cannot be empty')]
+    )
+
+    @validates_schema
+    def validate_password_match(self, data, **kwargs):
+        if data.get("password") != data.get("confirm_password"):
+            raise ValidationError(
+                {
+                    "confirm_password": ["Passwords do not match"],
+                }
+            )

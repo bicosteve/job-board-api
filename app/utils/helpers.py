@@ -1,7 +1,45 @@
+import os
 import random
+from datetime import datetime, timedelta
+
+
+from itsdangerous import (
+    URLSafeTimedSerializer,
+    SignatureExpired,
+    BadSignature,
+)
+
+SECRET_KEY = os.getenv('SECRET_KEY', 'dev_secret_key')
+expiry_time = os.getenv('RESET_TIME', 3600)
+s = URLSafeTimedSerializer(SECRET_KEY)
 
 
 class Helpers:
     @staticmethod
     def generate_verification_code():
         return str(random.randint(100_000, 999_999))
+
+    @staticmethod
+    def generate_reset_token(email) -> str:
+        return s.dumps(email, salt='password-reset-salt')
+
+    @staticmethod
+    def verify_reset_token(token, max_age=expiry_time) -> str | None:
+        try:
+            email = s.loads(token, salt='password-reset-salt',
+                            max_age=max_age)
+            return email
+        except SignatureExpired:
+            raise "Signature expired"
+        except BadSignature:
+            print("token is invalid or tampered with")
+        return None
+
+    @staticmethod
+    def compare_token_time(data: dict) -> bool:
+        time_in_string = data['time']
+        time_format = '%Y-%m-%d %H:%M:%S'
+        stored_time = datetime.strptime(time_in_string, time_format)
+        now = datetime.now()
+        time_difference = now - stored_time
+        return time_difference > timedelta(minutes=5)
