@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from ..repositories.user_repository import UserRepository
 from ..repositories.user_cache import UserCache
 from ..utils.security import Security
@@ -58,7 +56,7 @@ class UserService:
         status = 0
         result = UserRepository.add_user(email, hash, status)
         if result < 1:
-            Loggger.error(f'error adding user to db')
+            Loggger.error('error adding user to db')
             raise GenericDatabaseError("error occured while adding user")
         return {"rows_affected": result}
 
