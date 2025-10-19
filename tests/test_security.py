@@ -18,8 +18,7 @@ class TestSecurity(unittest.TestCase):
         self.profile_id = 1001
         self.email = 'user@example.com'
 
-    # ------------ 1. PASSWORD HASHING---------------#
-
+    # ------------ 1. PASSWORD HASHING --------------------#
     def test_hash_password_returns_string(self):
         hashed = Security.hash_password(self.password)
         self.assertIsInstance(hashed, str)
@@ -33,41 +32,39 @@ class TestSecurity(unittest.TestCase):
         result = Security.check_password(self.password, hashed)
         self.assertTrue(result)
 
-    # ------------- 2. JWT TOKEN CREATION----------------#
-
+    # ------------- 2. JWT TOKEN CREATION ----------------#
     def test_create_jwt_token_returns_string(self):
         token = Security.create_jwt_token(self.profile_id, self.email)
         self.assertIsInstance(token, str)
 
     def test_create_jwt_token_contains_profile_and_email(self):
         token = Security.create_jwt_token(self.profile_id, self.email)
-        algorith = os.getenv('JWT_ALGORITHM')
+        algorithm = os.getenv('JWT_ALGORITHM')
         decoded = jwt.decode(token, os.getenv(
-            'JWT_SECRET'), algorithms=[algorith])
+            'JWT_SECRET'), algorithms=[algorithm])
 
         self.assertEqual(decoded['profile_id'], self.profile_id)
         self.assertEqual(decoded['email'], self.email)
 
     # ---------- 3. JWT DECODING ------------------------#
-
-    def test_decode_jwt_token_invalid(self):
+    def test_decode_jwt_valid_token(self):
         token = Security.create_jwt_token(self.profile_id, self.email)
         payload = Security.decode_jwt_token(token)
         self.assertEqual(payload['profile_id'], self.profile_id)
         self.assertEqual(payload['email'], self.email)
 
-    def test_decode_jwt_token_expired(self):
+    def test_decode_jwt_token_invalid(self):
         fake_token = 'invalid.token.here'
         with self.assertRaises(Exception) as context:
             Security.decode_jwt_token(fake_token)
         self.assertIn('Invalid token', str(context.exception))
 
-    def test_decode_jwt_token_expired(self):
+    def test_decode_jwt_expired_token(self):
         expired_payload = {
             'profile_id': self.profile_id,
             'email': self.email,
-            'exp': datetime.datetime.now() - datetime.timedelta(seconds=1),
-            'iat': datetime.datetime.now()
+            'exp': int((datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(seconds=1)).timestamp()),
+            'iat': int(datetime.datetime.now(datetime.timezone.utc).timestamp())
         }
 
         token = jwt.encode(
@@ -78,7 +75,7 @@ class TestSecurity(unittest.TestCase):
 
         with self.assertRaises(Exception) as context:
             Security.decode_jwt_token(token)
-        self.assertIn('Invalid token', str(context.exception))
+        self.assertIn('Token expired', str(context.exception))
 
 
 if __name__ == '__main__':
