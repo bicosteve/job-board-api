@@ -32,6 +32,7 @@ class UserService:
             "created_at": user_profile.get("created_at"),
             "modified_at": user_profile.get("modified_at"),
         }
+
         return user
 
     @staticmethod
@@ -46,6 +47,7 @@ class UserService:
         if not Security.check_password(password, user["hash"]):
             Loggger.warn(f'Invalid password for user {email}')
             raise InvalidCredentialsError("Invalid email or password")
+
         return user
 
     @staticmethod
