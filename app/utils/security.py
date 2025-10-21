@@ -8,9 +8,6 @@ load_dotenv()
 
 
 class Security:
-    _algorithm = os.getenv("JWT_ALGORITHM")
-    _now = datetime.datetime.now(datetime.UTC)
-    _secret = os.getenv("JWT_SECRET")
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -35,25 +32,31 @@ class Security:
     @staticmethod
     def create_jwt_token(profile_id, email) -> str:
         """Generate jwt token with profile_id and email as payload"""
+        secret = os.getenv('JWT_SECRET')
+        algorithm = os.getenv('JWT_ALGORITHM')
+        expiry_hours = int(os.getenv('JWT_TOKEN_EXPIRY_HOURS', '24'))
+        now = datetime.datetime.now(datetime.UTC)
+        exp_time = now + datetime.timedelta(hours=expiry_hours)
 
-        exp_time = Security._now + datetime.timedelta(hours=24 * 1)
         payload = {
             "profile_id": profile_id,
             "email": email,
             "exp": exp_time,
-            "iat": Security._now,
+            "iat": now,
         }
 
-        token = jwt.encode(payload, Security._secret,
-                           algorithm=Security._algorithm)
+        token = jwt.encode(payload, secret, algorithm=algorithm)
 
         return token
 
     @staticmethod
     def decode_jwt_token(token):
         """Decodes jwt token and returns profile object"""
+        secret = os.getenv('JWT_SECRET')
+        algorithm = os.getenv('JWT_ALGORITHM')
+
         try:
-            payload = jwt.decode(token, Security._secret, Security._algorithm)
+            payload = jwt.decode(token, secret, algorithms=[algorithm])
             return payload
         except jwt.ExpiredSignatureError:
             raise Exception("Token expired")

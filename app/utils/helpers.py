@@ -32,8 +32,7 @@ class Helpers:
         except SignatureExpired:
             raise "Signature expired"
         except BadSignature:
-            print("token is invalid or tampered with")
-        return None
+            raise Exception("Token is invalid or tampered with")
 
     @staticmethod
     def compare_token_time(data: dict) -> bool:
