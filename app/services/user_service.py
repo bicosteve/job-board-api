@@ -19,10 +19,10 @@ from ..utils.logger import Loggger
 
 class UserService:
     @staticmethod
-    def get_user_profile(user_id):
+    def get_user_profile(user_id) -> dict:
         user_profile = UserRepository.find_user_by_id(user_id)
         if not user_profile:
-            raise GenericDatabaseError("error occured while finding user")
+            raise GenericDatabaseError("error occurred while finding user")
         user = {
             "profile_id": user_profile.get("profile_id"),
             "email": user_profile.get("email"),
@@ -36,7 +36,7 @@ class UserService:
         return user
 
     @staticmethod
-    def get_user(email, password):
+    def get_user(email, password) -> dict:
         user = UserRepository.find_user_by_mail(email)
         if not user:
             Loggger.warn(f'user not found for email {email}')
@@ -51,7 +51,7 @@ class UserService:
         return user
 
     @staticmethod
-    def register_user(username, email, password):
+    def register_user(username, email, password) -> dict:
         exists = UserRepository.find_user_by_mail(email)
         if exists:
             Loggger.warn(f'User already exist for email {email}')
