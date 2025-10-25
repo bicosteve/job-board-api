@@ -319,3 +319,19 @@ class TestUserService(unittest.TestCase):
             mock_repo.assert_called_once_with(self.email)
             mock_compare.assert_called_once_with(data)
             self.assertEqual(result, token)
+
+    def test_change_password_success(self):
+        password_hash = "somehash"
+
+        with patch("app.services.user_service.Security.hash_password") as mock_security, \
+                patch("app.services.user_service.UserRepository.update_password") as mock_repo:
+
+            mock_security.return_value = password_hash
+            mock_repo.return_value = 1
+
+            result = UserService.change_password(self.email, self.password)
+
+            # assert
+            mock_security.assert_called_once_with(self.password)
+            mock_repo.assert_called_once_with(self.email, password_hash)
+            self.assertEqual(result, 1)
