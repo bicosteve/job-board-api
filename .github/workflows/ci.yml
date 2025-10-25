@@ -73,7 +73,6 @@ jobs:
           pip install -r requirements.txt
           pip install python-dotenv
           pip freeze | grep python-dotenv >> requirements.txt
-          cat requirements.txt
 
       # 4. Run the tests
       - name: Run tests

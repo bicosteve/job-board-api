@@ -80,3 +80,49 @@ class TestUserRepository(unittest.TestCase):
 
             with self.assertRaises(GenericDatabaseError):
                 UserRepository.find_user_by_mail(email)
+
+    def test_find_user_by_id_success(self):
+        '''Should return user object if success'''
+        profile_id = 1
+        fake_user = {
+            'profile_id': profile_id,
+            'email': 'test@example.com',
+            'photo': 'https://picsum.photos/200/300',
+            'status': 1,
+            'reset_token': 'some-reset-token',
+            'created_at': '2025-10-25 00:00:00',
+            'updated_at': '2025-10-25 00:00:00',
+        }
+
+        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+            mock_conn = MagicMock()
+            mock_cursor = MagicMock()
+            mock_cursor.fetchone.return_value = fake_user
+            mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+            mock_get_db.return_value = mock_conn
+
+            # Act
+            result = UserRepository.find_user_by_id(profile_id)
+
+            # Assert
+            mock_cursor.execute.assert_called_once()
+            mock_cursor.fetchone.assert_called_once()
+            self.assertIsInstance(result, dict)
+            self.assertEqual(fake_user['profile_id'], 1)
+
+    def test_find_user_by_id_not_found(self):
+        '''Shoud return None'''
+        id = 1
+
+        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+            mock_conn = MagicMock()
+            mock_cursor = MagicMock()
+
+            mock_cursor.fetchone.return_value = None
+            mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+            mock_get_db.return_value = mock_conn
+
+            result = UserRepository.find_user_by_id(id)
+
+            mock_cursor.execute.assert_called_once()
+            self.assertIsNone(result)
