@@ -1,6 +1,6 @@
 from flask_restful import Api
 
-from .controllers.users import (
+from .controllers.user_controllers import (
     UserRegister,
     UserLogin,
     UserProfile,
