@@ -14,6 +14,10 @@ pyjwt = "*"
 redis = "*"
 black = "*"
 itsdangerous = "*"
+coverage = "*"
+flasgger = {extras = ["redoc"], version = "*"}
+redoc = "*"
+cryptography = "*"
 
 [dev-packages]
 
