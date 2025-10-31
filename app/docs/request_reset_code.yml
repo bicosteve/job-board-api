@@ -1,0 +1,29 @@
+tags:
+  - Authentication
+summary: Request Password Reset Code
+description: User request password reset code & token.
+consumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        email:
+          type: string
+          example: johndoe@example.com
+      required:
+        - email
+responses:
+  200:
+    description: Account verified successfully
+  400:
+    description: Validation error
+  404:
+    description: User does not exist
+  500:
+    description: Internal server error
