@@ -17,3 +17,5 @@ redis==6.4.0
 black==25.9.0
 itsdangerous==2.2.0
 PyMySQL==1.1.2
+coverage==7.11.0
+flasgger==0.9.7.1
