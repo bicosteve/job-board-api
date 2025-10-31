@@ -1,3 +1,6 @@
+import os
+
+from dotenv import load_dotenv
 from flask_restful import Api
 
 from .controllers.user_controllers import (
@@ -9,12 +12,15 @@ from .controllers.user_controllers import (
     AccountPasswordReset
 )
 
+load_dotenv()
+
 
 def register_routes(app):
+    API_V = os.getenv('API_V', '/v0/api')
     api = Api(app)
-    api.add_resource(UserRegister, "/v0/api/profile/register")
-    api.add_resource(UserVerifyAccount, "/v0/api/profile/verify")
-    api.add_resource(UserLogin, "/v0/api/profile/login")
-    api.add_resource(UserProfile, "/v0/api/profile/me")
-    api.add_resource(ResetPasswordRequest, "/v0/api/profile/request-reset")
-    api.add_resource(AccountPasswordReset, "/v0/api/profile/reset-password")
+    api.add_resource(UserRegister, API_V + "/profile/register")
+    api.add_resource(UserVerifyAccount, API_V + "/profile/verify")
+    api.add_resource(UserLogin, API_V + "/profile/login")
+    api.add_resource(UserProfile, API_V + "/profile/me")
+    api.add_resource(ResetPasswordRequest, API_V + "/profile/request-reset")
+    api.add_resource(AccountPasswordReset, API_V + "/profile/reset-password")

@@ -2,6 +2,7 @@ from flask import jsonify, make_response
 from flask_restful import Resource, request
 from marshmallow import ValidationError
 from jwt import ExpiredSignatureError, InvalidTokenError
+from flasgger import swag_from
 
 
 from ..services.user_service import UserService
@@ -25,6 +26,7 @@ from ..utils.logger import Loggger
 class UserRegister(Resource):
     register_schema = RegisterSchema()
 
+    @swag_from('../docs/register.yml')
     def post(self):
         try:
             data = UserRegister.register_schema.load(request.get_json())
@@ -74,6 +76,7 @@ class UserRegister(Resource):
 class UserLogin(Resource):
     login_schema = LoginSchema()
 
+    @swag_from('../docs/login.yml')
     def post(self):
         try:
             data = UserLogin.login_schema.load(request.get_json())
@@ -119,6 +122,9 @@ class UserLogin(Resource):
 
 
 class UserProfile(Resource):
+    '''Get user profile'''
+
+    @swag_from('../docs/get_profile.yml')
     def get(self):
         """Gets user profile and return the details"""
         auth_header = request.headers.get("Authorization")
@@ -161,6 +167,7 @@ class UserProfile(Resource):
 class UserVerifyAccount(Resource):
     verify_account_schema = VerifyAccountSchema()
 
+    @swag_from('../docs/verify_account.yml')
     def post(self):
         try:
             data = UserVerifyAccount.verify_account_schema.load(
@@ -192,6 +199,7 @@ class UserVerifyAccount(Resource):
 class ResetPasswordRequest(Resource):
     request_reset_password_schema = RequestResetPasswordSchema()
 
+    @swag_from('../docs/request_reset_code.yml')
     def post(self):
         try:
             data = ResetPasswordRequest.request_reset_password_schema.load(
@@ -216,6 +224,7 @@ class ResetPasswordRequest(Resource):
 class AccountPasswordReset(Resource):
     reset_password_schema = ResetPasswordSchema()
 
+    @swag_from('../docs/password_reset.yml')
     def post(self):
         token = request.args.get('token')
         if len(token) < 1:

@@ -1,0 +1,44 @@
+tags:
+  - Authentication
+summary: User Login
+description: Authenticate a user and return a JWT token on successful login.
+cunsumes:
+  - application/json
+produces:
+  - application/json
+parameters:
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        email:
+          type: string
+          example: user@example.com
+        password:
+          type: string
+          example: pass123
+      required:
+        - email
+        - password
+responses:
+  200:
+    description: Login successful
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: Login success
+        token:
+          type: string
+  400:
+    description: Validation error
+  401:
+    description: Invalid credentials
+  404:
+    description: User not found
+  500:
+    description: Internal server error
+
