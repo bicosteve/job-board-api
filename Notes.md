@@ -31,3 +31,4 @@
 2. install with `pipenv install flasgger`.
 3. add to the requirements.txt with `pip freeze | grep flasgger >> requirements.txt`.
 4. integrate it to your main file by initializing `swagger = Swagger(app, template={})`.
+5. check the endpoint using `http://127.0.0.1:5005/apidocs/`
