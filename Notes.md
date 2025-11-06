@@ -24,6 +24,9 @@
 2. Write unit tests for services.
 3. Write unit tests for repository.
 4. Write unit tests for controllers.
+5. Use `python -m unittest discover -s tests` to run tests.
+6. Use `coverage run -m unittest discover -s tests` to get test coverage.
+7. Use `coverage report` to view the test coverage
 
 ## Swagger Documentation
 
