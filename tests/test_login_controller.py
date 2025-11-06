@@ -112,3 +112,31 @@ class TestLoginController(unittest.TestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertIn('credentials_error', response.get_json())
+
+    @patch("app.controllers.user_controllers.Security.create_jwt_token")
+    @patch("app.controllers.user_controllers.UserService.get_user")
+    @patch("app.controllers.user_controllers.UserLogin.login_schema.load")
+    def test_token_generation_err(self, mock_load, mock_get_user, mock_token):
+        '''Should return 500 when token generation fails'''
+        mock_load.return_value = {
+            "email": self.email, "password": self.password}
+        mock_get_user.return_value = {"profile_id": 1, "email": self.email}
+        mock_token.return_value = None
+
+        res = self.client.post(self.endpoint, json=self.payload)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertIn("msg", res.get_json())
+
+    @patch("app.controllers.user_controllers.UserService.get_user")
+    @patch("app.controllers.user_controllers.UserLogin.login_schema.load")
+    def test_login_unexpected_error(self, mock_load, mock_get_user):
+        '''Should return 500 if an unexpected exception occurs'''
+        mock_load.return_value = {
+            'email': self.email, 'password': self.password}
+        mock_get_user.side_effect = Exception("Unexpected error")
+
+        res = self.client.post(self.endpoint, json=self.payload)
+
+        self.assertEqual(res.status_code, 500)
+        self.assertIn("generic_error", res.get_json())
