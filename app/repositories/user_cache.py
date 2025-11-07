@@ -1,39 +1,57 @@
 import json
 
 
-from ..db.redis import Redis
+from ..db.redis import Cache
 from ..utils.helpers import Helpers
 
 
 class UserCache:
-    client = Redis.connect_redis()
+    '''
+    Has methods that are used to access objects in cache
+    '''
+
+    @staticmethod
+    def get_client():
+        '''
+        Load the redis client lazily.
+        Prevents the creation of Redis client
+        untill it is needed.
+        This prevents connecting to Redis at import time
+        therefore prevents `Working outside of application
+        context`.
+        '''
+        return Cache.connect_redis()
 
     @staticmethod
     def store_verification_code(email, code) -> bool:
+        client = Cache.connect_redis()
         ttl = 6 * 60 * 60
-        result = UserCache.client.setex(f"verify#{email}", ttl, code)
+        result = client.setex(f"verify#{email}", ttl, code)
         return result
 
     @staticmethod
     def verify_code(email, submitted_code) -> bool:
-        stored_code = UserCache.client.get(f"verify#{email}")
+        client = Cache.connect_redis()
+        stored_code = client.get(f"verify#{email}")
         if stored_code is None:
             return False
         if stored_code != submitted_code:
             return False
-        UserCache.client.delete(f"verify#{email}")
+        client.delete(f"verify#{email}")
         return True
 
     @staticmethod
     def hold_reset_token(email, data) -> bool:
         ttl = 60 * 60
-        result = UserCache.client.setex(
+        client = Cache.connect_redis()
+        result = client.setex(
             f'reset#{email}', ttl, json.dumps(data))
         return result
 
     @staticmethod
     def retrieve_reset_token(email, submitted_token) -> str:
-        raw = UserCache.client.get(f'reset#{email}')
+        client = Cache.connect_redis()
+        raw = client.get(f'reset#{email}')
         if raw is None:
             return None
         data = json.loads(raw)
@@ -45,5 +63,5 @@ class UserCache:
         if has_expired:
             return None
 
-        UserCache.client.delete(f'reset#{email}')
+        client.delete(f'reset#{email}')
         return data['token']

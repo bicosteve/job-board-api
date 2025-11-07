@@ -1,16 +1,12 @@
-import os
-
-from dotenv import load_dotenv
 from flask import Flask
 from flasgger import Swagger
 
-from .db.db import close_db
+from .db.db import DB
+from .db.redis import Cache
 from .routes import register_routes
 from .template import swagger_template
-from .utils.init import init_dependencis
+from .utils.init import init_dependencies
 from .utils.logger import Loggger
-
-load_dotenv()
 
 
 def create_app():
@@ -20,12 +16,13 @@ def create_app():
     # Swagger init
     Swagger(app, template=swagger_template)
 
-    init_dependencis(app)
+    init_dependencies(app)
 
-    app.teardown_appcontext(close_db)
+    app.teardown_appcontext(DB.close_db)
+    app.teardown_appcontext(Cache.close_redis)
+
     register_routes(app)
 
-    Loggger.info(
-        f'Allez klarr. Starting app on port {os.getenv('APP_PORT', 5005)}')
+    Loggger.info(f"All clear. App running on port {5005}...")
 
     return app

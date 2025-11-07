@@ -20,7 +20,7 @@ class TestUserRepository(unittest.TestCase):
             'created_at': '2025-10-25 00:00:00'
         }
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
 
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
@@ -46,7 +46,7 @@ class TestUserRepository(unittest.TestCase):
         # Arrange
         email = 'error@example.com'
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone.return_value = None
@@ -64,7 +64,7 @@ class TestUserRepository(unittest.TestCase):
         '''Raise GenericDatabaseError on Mysql error'''
         email = 'error@example.com'
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
             mock_get_db.side_effect = pymysql.MySQLError(
                 'DB connection failed')
 
@@ -75,7 +75,7 @@ class TestUserRepository(unittest.TestCase):
         '''Should raise GenericDatabaseError on unexpected error'''
         email = 'error@example.com'
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
             mock_get_db.side_effect = Exception('Something broke')
 
             with self.assertRaises(GenericDatabaseError):
@@ -94,7 +94,7 @@ class TestUserRepository(unittest.TestCase):
             'updated_at': '2025-10-25 00:00:00',
         }
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
             mock_cursor.fetchone.return_value = fake_user
@@ -114,7 +114,7 @@ class TestUserRepository(unittest.TestCase):
         '''Shoud return None'''
         id = 1
 
-        with patch('app.repositories.user_repository.get_db') as mock_get_db:
+        with patch('app.repositories.user_repository.DB.get_db') as mock_get_db:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
 

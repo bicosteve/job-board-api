@@ -1,7 +1,7 @@
 import pymysql
 from pymysql.cursors import DictCursor
 
-from ..db.db import get_db
+from ..db.db import DB
 from ..utils.exceptions import GenericDatabaseError
 from ..utils.logger import Loggger
 
@@ -10,7 +10,7 @@ class UserRepository:
     @staticmethod
     def find_user_by_mail(email: str) -> dict:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
                 SELECT profile_id,email,hash,status,created_at
@@ -42,7 +42,7 @@ class UserRepository:
     @staticmethod
     def find_user_by_id(profile_id: int) -> dict:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
                 SELECT * FROM profile WHERE profile_id = %s
@@ -78,7 +78,7 @@ class UserRepository:
     @staticmethod
     def add_user(email: str, hash: str, status: int) -> int:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor() as cursor:
                 query = """
                 INSERT INTO profile(email,hash,status)
@@ -99,7 +99,7 @@ class UserRepository:
     @staticmethod
     def update_user_status(email: str) -> int:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor() as cursor:
                 query = """
                 UPDATE profile SET status = 1 WHERE email = %s
@@ -119,7 +119,7 @@ class UserRepository:
     @staticmethod
     def store_reset_token(email: str, token: str) -> int:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor() as cursor:
                 query = '''
                 UPDATE profile SET reset_token = %s
@@ -138,7 +138,7 @@ class UserRepository:
     @staticmethod
     def get_reset_token(email: str) -> dict:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = '''
                 SELECT reset_token, modified_at
@@ -165,7 +165,7 @@ class UserRepository:
     @staticmethod
     def update_password(email: str, password: str) -> int:
         try:
-            conn = get_db()
+            conn = DB.get_db()
             with conn.cursor() as cursor:
                 query = '''
                 UPDATE profile SET hash = %s
