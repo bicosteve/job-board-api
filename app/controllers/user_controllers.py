@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import jsonify, make_response
 from flask_restful import Resource, request
 from marshmallow import ValidationError
@@ -162,6 +164,23 @@ class UserProfile(Resource):
         except Exception as e:
             Loggger.exception(f'Unexpected error occured {str(e)}')
             return {"error": str(e)}, 500
+
+
+class AppHealthCheck(Resource):
+    '''Get the app status'''
+
+    @swag_from('../docs/get_health.yml')
+    def get(self):
+        """Get the status of the app"""
+
+        now = datetime.now()
+
+        return {"data": {
+            "time": str(now.time()),
+            "date": str(now.date()),
+            "now": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "msg": "App is running successfully"
+        }}, 200
 
 
 class UserVerifyAccount(Resource):

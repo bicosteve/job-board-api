@@ -21,7 +21,7 @@ class Config:
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
     CONTACT_NAME = os.getenv("CONTACT_NAME", "bicosteve")
     CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "bicosteve@gmail.com")
-    API_VERSION_BASE = os.getenv("API_VERSION_BASE", "/v0/api")
+    API_BASE = os.getenv("API_VERSION_BASE", "/v0/api")
     PORT = int(os.getenv("PORT" , 5005))
     HOST = os.getenv("HOST", "0.0.0.0")
     DEBUG = bool(os.getenv("DEBUG", "False").lower() == "true")
