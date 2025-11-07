@@ -184,7 +184,7 @@ class UserVerifyAccount(Resource):
             if not is_verified:
                 Loggger.warn(f'Error while verifying account {email}')
                 return {"error": "error while verifying account"}, 500
-            return {"error": "account verification success"}, 200
+            return {"msg": "account verification success"}, 200
         except UserExistError as e:
             Loggger.warn(f'{str(e)}')
             return {"user_error": str(e)}, 400
