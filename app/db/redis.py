@@ -1,17 +1,29 @@
 import os
 import redis
-from dotenv import load_dotenv
-
-load_dotenv()
+from flask import current_app, g
 
 
-class Redis:
+class Cache:
 
     @staticmethod
     def connect_redis():
-        return redis.StrictRedis(
-            host=os.getenv("REDIS_HOST"),
-            port=os.getenv("REDIS_PORT"),
-            db=os.getenv("REDIS_DB"),
-            decode_responses=True,
-        )
+        '''
+        Return a Redis client bound to the current context
+        Reuse it if already exists in global request context (g)
+        (g) only exists for a lifetime of a request.
+        '''
+        if 'redis' not in g:
+            g.redis = redis.Redis(
+                host=current_app.config["REDIS_HOST"],
+                port=current_app.config["REDIS_PORT"],
+                db=current_app.config["REDIS_DB"],
+                decode_responses=True,
+            )
+        return g.redis
+
+    @staticmethod
+    def close_redis(e=None):
+        '''Close Redis connection at the end of request'''
+        client = g.pop('redis', None)
+        if client is not None:
+            client.close()
