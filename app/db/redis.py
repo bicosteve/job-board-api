@@ -17,6 +17,7 @@ class Cache:
                 host=current_app.config["REDIS_HOST"],
                 port=current_app.config["REDIS_PORT"],
                 db=current_app.config["REDIS_DB"],
+                password=current_app.config['REDIS_PASSWORD'],
                 decode_responses=True,
             )
         return g.redis

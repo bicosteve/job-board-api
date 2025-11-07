@@ -1,5 +1,4 @@
 import sys
-import os
 import time
 
 
@@ -30,38 +29,47 @@ def retry_connection(func, retries=3, delay=2, backoff=2):
 
 def check_db(app):
     def connect_db():
-        conn = pymysql.connect(
-            host=app.config['DB_HOST'],
-            user=app.config['DB_USER'],
-            password=app.config['DB_PASSWORD'],
-            database=app.config['DB_NAME'],
-            connect_timeout=5
-        )
-        conn.close()
-        Loggger.info('DB connection success')
+        try:
+            conn = pymysql.connect(
+                host=app.config['DB_HOST'],
+                user=app.config['DB_USER'],
+                password=app.config['DB_PASSWORD'],
+                database=app.config['DB_NAME'],
+                connect_timeout=5
+            )
+
+            Loggger.info('DB connection success')
+        except Exception as e:
+            Loggger.exception(f'An error occured {str(e)}')
+        finally:
+            conn.close()
 
     retry_connection(connect_db)
 
 
 def check_cache(app):
     def connect_redis():
-        client = redis.Redis(
-            host=app.config['REDIS_HOST'],
-            port=app.config['REDIS_PORT'],
-            db=app.config['REDIS_DB'],
-            socket_connect_timeout=5
-        )
+        try:
+            client = redis.Redis(
+                host=app.config['REDIS_HOST'],
+                port=app.config['REDIS_PORT'],
+                db=app.config['REDIS_DB'],
+                password=app.config['REDIS_PASSWORD'],
+                socket_connect_timeout=5
+            )
 
-        client.ping()
-        Loggger.info('Redis connection successful...')
+            client.ping()
+            Loggger.info('Redis connection success')
+        except Exception as e:
+            Loggger.exception(f'Something went wrong {str(e)}')
 
     retry_connection(connect_redis)
 
 
 def init_dependencies(app):
     '''
-    Verify core services like (DB, Redis, RabbitMQ or Kafka)
-    are reachable with retry logic
+    Verify core services like (DB, Redis, Message Brokers)
+    are reachable with retry logic.
     '''
 
     Loggger.info("Checking dependencies...")
