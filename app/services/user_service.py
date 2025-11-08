@@ -20,17 +20,16 @@ from ..utils.logger import Loggger
 class UserService:
     @staticmethod
     def get_user_profile(user_id) -> dict:
-        user_profile = UserRepository.find_user_by_id(user_id)
-        if not user_profile:
+        user = UserRepository.find_user_by_id(user_id)
+        if not user:
             raise GenericDatabaseError("error occurred while finding user")
         user = {
-            "profile_id": user_profile.get("profile_id"),
-            "email": user_profile.get("email"),
-            "photo": user_profile.get("photo"),
-            "status": user_profile.get("status"),
-            "reset_token": user_profile.get("reset_token"),
-            "created_at": user_profile.get("created_at"),
-            "modified_at": user_profile.get("modified_at"),
+            "user_id": user.get("user_id"),
+            "email": user.get("email"),
+            "status": user.get("status"),
+            "reset_token": user.get("reset_token"),
+            "created_at": user.get("created_at"),
+            "updated_at": user.get("updated_at"),
         }
 
         return user
@@ -44,6 +43,9 @@ class UserService:
         if user["status"] != 1:
             Loggger.warn(f"user not verified for {email}")
             raise InvalidLoginAttemptError("Your account is not verified")
+        if user["is_deactivated"] == 1:
+            Loggger.warn(f"user {email} is deactivated")
+            raise InvalidLoginAttemptError("You account is deactivated")
         if not Security.check_password(password, user["hash"]):
             Loggger.warn(f"Invalid password for user {email}")
             raise InvalidCredentialsError("Invalid email or password")
@@ -52,8 +54,8 @@ class UserService:
 
     @staticmethod
     def register_user(username, email, password) -> dict:
-        exists = UserRepository.find_user_by_mail(email)
-        if exists:
+        user = UserRepository.find_user_by_mail(email)
+        if user:
             Loggger.warn(f"User already exist for email {email}")
             raise UserExistError("user already exists")
         password_hash = Security.hash_password(password)
@@ -71,9 +73,10 @@ class UserService:
     @staticmethod
     def verify_account(email, code) -> bool:
         try:
-            if UserCache.verify_code(email, code):
-                return True
-            return UserRepository.update_user_status(email) > 0
+            has_code = UserCache.verify_code(email, code)
+            if has_code:
+                return UserRepository.update_user_status(email) > 1
+            return False
         except Exception as e:
             Loggger.exception(str(e))
             raise GenericDatabaseError(str(e))
