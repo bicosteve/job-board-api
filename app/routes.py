@@ -9,15 +9,19 @@ from .controllers.user_controllers import (
     UserProfile,
     UserVerifyAccount,
     ResetPasswordRequest,
-    AccountPasswordReset
+    AccountPasswordReset,
+    AppHealthCheck
 )
 
 load_dotenv()
 
 
 def register_routes(app):
-    API_V = os.getenv('API_V', '/v0/api')
+    API_V = app.config['API_BASE']
+    # API_V = os.getenv('API_V', '/v0/api')
     api = Api(app)
+
+    api.add_resource(AppHealthCheck, API_V + "/health/check")
     api.add_resource(UserRegister, API_V + "/profile/register")
     api.add_resource(UserVerifyAccount, API_V + "/profile/verify")
     api.add_resource(UserLogin, API_V + "/profile/login")

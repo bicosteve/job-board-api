@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import jsonify, make_response
 from flask_restful import Resource, request
 from marshmallow import ValidationError
@@ -164,6 +166,23 @@ class UserProfile(Resource):
             return {"error": str(e)}, 500
 
 
+class AppHealthCheck(Resource):
+    '''Get the app status'''
+
+    @swag_from('../docs/get_health.yml')
+    def get(self):
+        """Get the status of the app"""
+
+        now = datetime.now()
+
+        return {"data": {
+            "time": str(now.time()),
+            "date": str(now.date()),
+            "now": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "msg": "App is running successfully"
+        }}, 200
+
+
 class UserVerifyAccount(Resource):
     verify_account_schema = VerifyAccountSchema()
 
@@ -184,7 +203,7 @@ class UserVerifyAccount(Resource):
             if not is_verified:
                 Loggger.warn(f'Error while verifying account {email}')
                 return {"error": "error while verifying account"}, 500
-            return {"error": "account verification success"}, 200
+            return {"msg": "account verification success"}, 200
         except UserExistError as e:
             Loggger.warn(f'{str(e)}')
             return {"user_error": str(e)}, 400
