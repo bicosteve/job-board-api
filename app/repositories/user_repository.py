@@ -8,71 +8,73 @@ from ..utils.logger import Loggger
 
 class UserRepository:
     @staticmethod
-    def find_user_by_mail(email: str) -> dict:
+    def find_user_by_mail(email: str) -> dict | None:
         try:
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
-                SELECT profile_id,email,hash,status,created_at
-                FROM profile
+                SELECT u.user_id,u.email,u.hash,u.status,
+                u.created_at,us.is_deactivated
+                FROM user u
+                INNER JOIN user_setting us
+                ON u.user_id = us.user_id
                 WHERE email = %s
                 """
                 cursor.execute(query, (email,))
                 row = cursor.fetchone()
 
             if not row:
-                Loggger.warn(f'no user found for {email}')
+                Loggger.warn(f"no user found for {email}")
                 return None
 
             user = {
-                "profile_id": row.get("profile_id"),
+                "user_id": row.get("user_id"),
                 "email": row.get("email"),
                 "hash": row.get("hash"),
                 "status": row.get("status"),
+                "is_deactivated": row.get("is_deactivated"),
                 "created_at": str(row.get("created_at")),
             }
             return user
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
 
     @staticmethod
-    def find_user_by_id(profile_id: int) -> dict:
+    def find_user_by_id(user_id: int) -> dict | None:
         try:
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
-                SELECT * FROM profile WHERE profile_id = %s
+                SELECT * FROM user WHERE user_id = %s
                 LIMIT 1
                 """
-                cursor.execute(query, (profile_id,))
+                cursor.execute(query, (user_id,))
                 row = cursor.fetchone()
 
             if not row:
-                Loggger.error(
-                    f'no user with profile id {profile_id}')
+                Loggger.error(f"no user with user_id {user_id}")
                 return None
 
-            profile = {
-                "profile_id": row.get("profile_id"),
+            user = {
+                "user_id": row.get("user_id"),
                 "email": row.get("email"),
                 "hash": row.get("hash"),
-                "photo": row.get("photo"),
                 "status": row.get("status"),
                 "reset_token": row.get("reset_token"),
                 "created_at": str(row.get("created_at")),
-                "modified_at": str(row.get("modified_at")),
+                "updated_at": str(row.get("updated_at")),
             }
 
-            return profile
+            return user
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
 
     @staticmethod
@@ -81,69 +83,96 @@ class UserRepository:
             conn = DB.get_db()
             with conn.cursor() as cursor:
                 query = """
-                INSERT INTO profile(email,hash,status)
+                INSERT INTO user(hash,email,status)
                 VALUES (%s,%s,%s)
                 """
-                cursor.execute(query, (email, hash, status))
+                cursor.execute(query, (hash, email, status))
                 conn.commit()
 
                 return cursor.rowcount
 
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
 
     @staticmethod
     def update_user_status(email: str) -> int:
+        conn = None
         try:
             conn = DB.get_db()
+            conn.autocommit(False)
             with conn.cursor() as cursor:
-                query = """
-                UPDATE profile SET status = 1 WHERE email = %s
+                # 1. Get user_id
+                query_one = "SELECT user_id FROM user WHERE email = %s"
+                cursor.execute(query_one, (email,))
+                result = cursor.fetchone()
+                if not result:
+                    return 0
+                user_id = result.get("user_id")
+
+                # 2. Update Status
+                query_two = """
+                UPDATE user SET status = 1 WHERE email = %s
                 """
-                cursor.execute(query, (email,))
+                cursor.execute(query_two, (email,))
+                update_count = cursor.rowcount
+
+                # 3. Insert into user_setting
+                query_three = """
+                INSERT INTO user_setting(is_deactivated, user_id)
+                VALUES (%s,%s)
+                """
+                cursor.execute(query_three, (0, user_id))
+                insert_count = cursor.rowcount
                 conn.commit()
 
-                return cursor.rowcount
+                return insert_count + update_count
 
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            if conn:
+                conn.rollback()
+            Loggger.error(f"MySQLError: {str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            if conn:
+                conn.rollback()
+            Loggger.error(f"General error: {str(e)}")
             raise GenericDatabaseError(str(e))
+        # finally:
+        #     if conn:
+        #         conn.close()
 
     @staticmethod
     def store_reset_token(email: str, token: str) -> int:
         try:
             conn = DB.get_db()
             with conn.cursor() as cursor:
-                query = '''
-                UPDATE profile SET reset_token = %s
+                query = """
+                UPDATE user SET reset_token = %s
                 WHERE email = %s
-                '''
+                """
                 cursor.execute(query, (token, email))
                 conn.commit()
                 return cursor.rowcount
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
 
     @staticmethod
-    def get_reset_token(email: str) -> dict:
+    def get_reset_token(email: str) -> dict | None:
         try:
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
-                query = '''
-                SELECT reset_token, modified_at
-                FROM profile WHERE email = %s
-                '''
+                query = """
+                SELECT reset_token, updated_at
+                FROM user WHERE email = %s
+                """
                 cursor.execute(query, (email,))
                 row = cursor.fetchone()
 
@@ -151,15 +180,15 @@ class UserRepository:
                     return None
 
                 data = {
-                    'reset-token': row.get('reset_token'),
-                    'time': str(row.get('modified_at')),
+                    "reset-token": row.get("reset_token"),
+                    "time": str(row.get("updated_at")),
                 }
                 return data
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
 
     @staticmethod
@@ -167,16 +196,16 @@ class UserRepository:
         try:
             conn = DB.get_db()
             with conn.cursor() as cursor:
-                query = '''
-                UPDATE profile SET hash = %s
+                query = """
+                UPDATE user SET hash = %s
                 WHERE email = %s
-                '''
+                """
                 cursor.execute(query, (password, email))
                 conn.commit()
                 return cursor.rowcount
         except pymysql.MySQLError as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
         except Exception as e:
-            Loggger.error(f'{str(e)}')
+            Loggger.error(f"{str(e)}")
             raise GenericDatabaseError(str(e))
