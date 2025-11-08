@@ -35,3 +35,9 @@
 3. add to the requirements.txt with `pip freeze | grep flasgger >> requirements.txt`.
 4. integrate it to your main file by initializing `swagger = Swagger(app, template={})`.
 5. check the endpoint using `http://127.0.0.1:5005/apidocs/`
+
+## Containerize the app for deployment
+
+1. Create a Dockerfile for the project.
+2. Create docker-compose.yml file for the project.
+3. Add the containerization process on the CI.

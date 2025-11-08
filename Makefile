@@ -6,3 +6,12 @@ test:
 
 coverage:
 	coverage run -m unittest discover -s tests
+
+containers:
+	docker compose up --build -d
+
+container_logs:
+	docker compose logs -f
+
+stop:
+	docker compose down -v
