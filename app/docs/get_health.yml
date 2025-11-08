@@ -11,8 +11,7 @@ responses:
       type: object
       properties:
         data:
-          type: object
-          example: {"data":{"time":"19:35:13.102028","date":"2025-11-07","now":"2025-11-07 19:35:13","msg":"App running successfully"}}
+          example: {"time":"19:35:13.102028","date":"2025-11-07","now":"2025-11-07 19:35:13","msg":"App running successfully"}
 
   500:
     description: Unexpected server error.
