@@ -39,13 +39,13 @@ class UserService:
     def get_user(email, password) -> dict:
         user = UserRepository.find_user_by_mail(email)
         if not user:
-            Loggger.warn(f'user not found for email {email}')
+            Loggger.warn(f"user not found for email {email}")
             raise InvalidCredentialsError("Invalid email")
         if user["status"] != 1:
-            Loggger.warn(f'user not verified for {email}')
+            Loggger.warn(f"user not verified for {email}")
             raise InvalidLoginAttemptError("Your account is not verified")
         if not Security.check_password(password, user["hash"]):
-            Loggger.warn(f'Invalid password for user {email}')
+            Loggger.warn(f"Invalid password for user {email}")
             raise InvalidCredentialsError("Invalid email or password")
 
         return user
@@ -54,13 +54,13 @@ class UserService:
     def register_user(username, email, password) -> dict:
         exists = UserRepository.find_user_by_mail(email)
         if exists:
-            Loggger.warn(f'User already exist for email {email}')
+            Loggger.warn(f"User already exist for email {email}")
             raise UserExistError("user already exists")
-        hash = Security.hash_password(password)
+        password_hash = Security.hash_password(password)
         status = 0
-        result = UserRepository.add_user(email, hash, status)
+        result = UserRepository.add_user(email, password_hash, status)
         if result < 1:
-            Loggger.error('error adding user to db')
+            Loggger.error("error adding user to db")
             raise GenericDatabaseError("error occured while adding user")
         return {"rows_affected": result}
 
@@ -84,22 +84,21 @@ class UserService:
             token = Helpers.generate_reset_token(email)
             if not token:
                 raise GenericGenerateResetTokenError(
-                    'An error occured while generating reset token')
+                    "An error occured while generating reset token"
+                )
             data = {
-                'token' : token,
-                'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                "token": token,
+                "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
-            isHeld = UserCache.hold_reset_token(email, data)
-            if not isHeld:
-                Loggger.error(
-                    'An error occurred while storing reset token in redis')
+            is_held = UserCache.hold_reset_token(email, data)
+            if not is_held:
+                Loggger.error("An error occurred while storing reset token in redis")
                 raise GenericRedisError(
-                    'An error occurred while storing reset token in redis')
+                    "An error occurred while storing reset token in redis"
+                )
             if not UserRepository.store_reset_token(email, token) > 0:
-                Loggger.error(
-                    'An error occured while storing reset token')
-                raise GenericDatabaseError(
-                    'An error occured while storing reset token')
+                Loggger.error("An error occured while storing reset token")
+                raise GenericDatabaseError("An error occured while storing reset token")
             return data
         except Exception as e:
             Loggger.exception(str(e))
@@ -112,18 +111,15 @@ class UserService:
             if not tkn:
                 data = UserRepository.get_reset_token(email)
                 if not data:
-                    Loggger.error(f'no token found for {email}')
-                    raise InvalidPasswordResetError(
-                        "No reset token found")
-                if data['reset-token'] != submitted_token:
-                    Loggger.error(f'Reset token do not match for {email}')
-                    raise InvalidPasswordResetError(
-                        "Wrong password reset token")
+                    Loggger.error(f"no token found for {email}")
+                    raise InvalidPasswordResetError("No reset token found")
+                if data["reset-token"] != submitted_token:
+                    Loggger.error(f"Reset token do not match for {email}")
+                    raise InvalidPasswordResetError("Wrong password reset token")
                 if not Helpers.compare_token_time(data):
                     Loggger.warn("The reset token has expired")
-                    raise InvalidPasswordResetError(
-                        "The reset token has expired")
-                return data['reset-token']
+                    raise InvalidPasswordResetError("The reset token has expired")
+                return data["reset-token"]
             return tkn
         except Exception as e:
             Loggger.exception(str(e))
@@ -136,7 +132,8 @@ class UserService:
         except Exception as e:
             Loggger.exception(str(e))
             raise GenericPasswordHashError(
-                'There is a problem generating password hash')
+                "There is a problem generating password hash"
+            )
 
         try:
             return UserRepository.update_password(email, hashed_password) > 0
