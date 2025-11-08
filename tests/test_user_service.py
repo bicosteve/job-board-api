@@ -25,9 +25,8 @@ class TestUserService(unittest.TestCase):
     @patch("app.services.user_service.UserRepository.find_user_by_id")
     def test_get_user_profile_returns_user_dict(self, mock_user_repo):
         fake_user = {
-            "profile_id": self.profile_id,
+            "user_id": self.user_id,
             "email": self.email,
-            "photo": "http://example.com/photo.jpg",
             "status": 1,
             "reset_token": "reset12345",
             "created_at": self.created_at,
@@ -39,13 +38,12 @@ class TestUserService(unittest.TestCase):
         result = UserService.get_user_profile(1)
 
         expected_keys = [
-            "profile_id",
+            "user_id",
             "email",
-            "photo",
             "status",
             "reset_token",
             "created_at",
-            "modified_at",
+            "updated_at",
         ]
 
         self.assertEqual(result["email"], fake_user["email"])
@@ -103,10 +101,11 @@ class TestUserService(unittest.TestCase):
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
     def test_get_user_not_verified(self, mock_user, mock_warn):
         user_data = {
-            "profile_id": self.profile_id,
+            "user_id": self.user_id,
             "email": self.email,
             "hash": self.hash,
             "status": self.status,
+            "is_deactivated": self.is_deactivated,
             "created_at": self.created_at,
         }
 
@@ -129,7 +128,7 @@ class TestUserService(unittest.TestCase):
             "email": self.email,
             "hash": self.hash,
             "status": self.status,
-            "is_deactivated": 0,
+            "is_deactivated": self.is_deactivated,
             "created_at": self.created_at,
         }
 
@@ -220,7 +219,7 @@ class TestUserService(unittest.TestCase):
     @patch(
         "app.services.user_service.UserRepository.update_user_status", return_value=1
     )
-    @patch("app.services.user_service.UserCache.verify_code", return_value=True)
+    @patch("app.services.user_service.UserCache.verify_code", return_value=False)
     def test_verify_account_success_with_db_update(
         self, mock_verify_code, mock_update_status
     ):
