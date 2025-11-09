@@ -1,4 +1,8 @@
+ENV ?= dev
+
 run:
+	ENV=$(ENV) \
+	FLASK_ENV=development \
 	python run.py
 
 test:
@@ -8,6 +12,8 @@ coverage:
 	coverage run -m unittest discover -s tests
 
 containers:
+	ENV=docker \
+	FLASK_ENV=development \
 	docker compose up --build -d
 
 container_logs:
