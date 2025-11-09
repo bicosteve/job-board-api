@@ -10,93 +10,132 @@ class TestUserCache(unittest.TestCase):
     This class is used to test helper methods in UserCache
     '''
 
-    @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_store_verification_code(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.setext.return_value = True
-
-        data = {
-            "email": "test@example.com",
-            "code": "123456"
-        }
-
-        result = UserCache.store_verification_code(data['email'], data['code'])
-
-        mock_client.setex.assert_called_once_with(
-            "verify#test@example.com", 6 * 60 * 60, "123456")
-        self.assertTrue
+    def setUp(self):
+        self.email = "user@example.com"
+        self.code = "123456"
+        self.toke_data = {"token": self.code,
+                          "created_at": "2025-01-01 12:00:00"}
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_verify_code_success(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.get.return_value = "123456"
+    def test_store_verification_code_success(self, mock_connect_redis):
+        client = MagicMock()
+        client.setex.return_value = True
+        mock_connect_redis.return_value = client
 
-        # Patch delete to succeed
-        mock_client.delete.return_value = 1
+        result = UserCache.store_verification_code(self.email, self.code)
 
-        result = UserCache.verify_code("test@example.com", "123456")
-
-        mock_client.get.assert_called_once_with("verify#test@example.com")
-        mock_client.delete.assert_called_once_with("verify#test@example.com")
-        self.assertTrue
+        client.setex.assert_called_once_with(
+            f"verify#{self.email}", 6 * 60 * 60, "123456")
+        self.assertTrue(result)
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_verify_code_failure_wrong_code(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.get.return_value = "999999"
+    def test_store_verification_code_failure(self, mock_connect_redis):
+        client = MagicMock()
+        client.setex.return_value = False
+        mock_connect_redis.return_value = client
 
-        result = UserCache.verify_code("test@example.com", "123456")
-
+        result = UserCache.store_verification_code(self.email, self.code)
         self.assertFalse(result)
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_hold_reset_token(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.setex.return_value = True
+    def test_verify_code_success(self, mock_connect_redis):
+        client = MagicMock()
+        client.get.return_value = self.code
+        mock_connect_redis.return_value = client
 
-        data = {"token": "abcd", "timestamp": "2025-11-06T20:00:00"}
-        result = UserCache.hold_reset_token("test@example.com", data)
+        result = UserCache.verify_code(self.email, self.code)
 
-        mock_client.setex.assert_called_once_with(
-            "reset#test@example.com", 60 * 60, json.dumps(data)
-        )
+        client.get.assert_called_once_with(f'verify#{self.email}')
+        client.delete.assert_called_once_with(f'verify#{self.email}')
 
         self.assertTrue(result)
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    @patch("app.repositories.user_cache.Helpers.compare_token_time")
-    def test_reset_token_expired(self, mock_compare, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.get.return_value = json.dumps(
-            {"token": "abcd", "timestamp": "2025-11-06T20:00:00"})
-        mock_compare.return_value = True  # expired
+    def test_verify_code_missing(self, mock_connect_redis):
+        client = MagicMock()
+        client.get.return_value = None
+        mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token("test@example.com", "abcd")
+        result = UserCache.verify_code(self.email, self.code)
 
-        self.assertIsNone(result)
+        self.assertFalse(result)
+        client.delete.assert_not_called()
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_retrieve_wrong_reset_token(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.get.return_value = json.dumps(
-            {"token": "abcd", "timestamp": "2025-11-07T20:00:00"})
+    def test_verify_code_mismatch(self, mock_connect_redis):
+        client = MagicMock()
+        client.get.return_value = "654321"
+        mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token("test@example.com", "wrong")
+        result = UserCache.verify_code(self.email, self.code)
 
-        self.assertIsNone(result)
+        self.assertFalse(result)
+        client.delete.assert_not_called()
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
-    def test_reset_token_retrieve_no_reset_token_failed(self, mock_connect):
-        mock_client = MagicMock()
-        mock_connect.return_value = mock_client
-        mock_client.get.return_value = None
+    def test_hold_reset_token_success(self, mock_connect_redis):
+        client = MagicMock()
+        client.setex.return_value = True
+        mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token("test@example.com", "abcd")
+        result = UserCache.hold_reset_token(self.email, self.toke_data)
+
+        client.setex.assert_called_once_with(
+            f'reset#{self.email}', 60 * 60, json.dumps(self.toke_data)
+        )
+
+        self.assertTrue(result)
+
+    # retrieve_reset_token()
+    @patch("app.repositories.user_cache.Helpers.compare_token_time", return_value=False)
+    @patch("app.repositories.user_cache.Cache.connect_redis")
+    def test_retrieve_reset_token_success(self, mock_connect_redis, mock_compare_token_time):
+        client = MagicMock()
+        client.get.return_value = json.dumps(self.toke_data)
+        mock_connect_redis.return_value = client
+
+        result = UserCache.retrieve_reset_token(self.email, self.code)
+
+        client.get.assert_called_once_with(f'reset#{self.email}')
+        client.delete.assert_called_once_with(f'reset#{self.email}')
+
+        self.assertEqual(result, self.code)
+
+    @patch("app.repositories.user_cache.Helpers.compare_token_time", return_value=True)
+    @patch("app.repositories.user_cache.Cache.connect_redis")
+    def test_retrieve_reset_token_expired(self, mock_connect_redis, mock_compare_token_time):
+        client = MagicMock()
+        client.get.return_value = json.dumps(self.toke_data)
+        mock_connect_redis.return_value = client
+
+        result = UserCache.retrieve_reset_token(self.email, self.code)
 
         self.assertIsNone(result)
+        client.delete.assert_not_called()
+
+    @patch("app.repositories.user_cache.Cache.connect_redis")
+    def test_retrieve_reset_token_not_found(self, mock_connect_redis):
+        client = MagicMock()
+        client.get.return_value = None
+        mock_connect_redis.return_value = client
+
+        result = UserCache.retrieve_reset_token(self.email, self.code)
+
+        self.assertIsNone(result)
+        client.delete.assert_not_called()
+
+    @patch("app.repositories.user_cache.Cache.connect_redis")
+    def test_retrieve_reset_token_mismatch(self, mock_connect_redis):
+        client = MagicMock()
+        client.get.return_value = json.dumps(
+            {"token": "333444", "created_at": "timestamp"})
+        mock_connect_redis.return_value = client
+
+        result = UserCache.retrieve_reset_token(self.email, self.code)
+
+        self.assertIsNone(result)
+        client.delete.assert_not_called()
+
+
+if __name__ == '__main__':
+    unittest.main()

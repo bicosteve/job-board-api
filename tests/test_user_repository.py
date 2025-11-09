@@ -66,7 +66,8 @@ class TestUserRepository(unittest.TestCase):
         email = "error@example.com"
 
         with patch("app.repositories.user_repository.DB.get_db") as mock_get_db:
-            mock_get_db.side_effect = pymysql.MySQLError("DB connection failed")
+            mock_get_db.side_effect = pymysql.MySQLError(
+                "DB connection failed")
 
             with self.assertRaises(GenericDatabaseError):
                 UserRepository.find_user_by_mail(email)
@@ -136,15 +137,22 @@ class TestUserRepository(unittest.TestCase):
         mock_conn.cursor.return_value = mock_cursor
         mock_get_db.return_value = mock_conn
 
+        email = "test@example.com"
+        password_hash = "hashp"
+
         # Act
-        result = UserRepository.add_user("test@example.com", "hashp", 1)
+        result = UserRepository.add_user(email, password_hash , 1)
 
         # Assert
-        mock_cursor.execute.assert_called_once_with(
-            """INSERT INTO user(hash,email,status)
-            VALUES (%s,%s,%s)""",
-            ("hashp", "test@example.com", 1),
-        )
+        # Normalize whitespace in the executed SQL
+        executed_sql = " ".join(mock_cursor.execute.call_args[0][0].split())
+        expected_sql = "INSERT INTO user(hash,email,status) VALUES (%s,%s,%s)"
+        self.assertEqual(executed_sql, expected_sql)
+
+        # Check parameters
+        executed_params = mock_cursor.execute.call_args[0][1]
+        expected_params = (password_hash, email, 1)
+        self.assertEqual(executed_params, expected_params)
 
         mock_conn.commit.assert_called_once()
         self.assertEqual(result, 1)

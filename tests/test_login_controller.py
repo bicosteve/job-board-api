@@ -73,7 +73,7 @@ class TestLoginController(unittest.TestCase):
     def test_login_user_not_found(self, mock_load, mock_get_user, mock_token):
         'Should return 500 if token generation fails'
         mock_load.return_value = self.payload
-        mock_get_user.return_value = {'profile_id': 1, 'email': self.email}
+        mock_get_user.return_value = {'user_id': 1, 'email': self.email}
         mock_token.return_value = None
 
         response = self.client.post(
@@ -88,7 +88,7 @@ class TestLoginController(unittest.TestCase):
     def test_login_user_not_found(self, mock_load, mock_get_user, mock_token):
         'Should return 200 JWT token if login succeeds'
         mock_load.return_value = self.payload
-        mock_get_user.return_value = {'profile_id': 1, 'email': self.email}
+        mock_get_user.return_value = {'user_id': 1, 'email': self.email}
         mock_token.return_value = 'jwt-token'
 
         response = self.client.post(
@@ -120,7 +120,7 @@ class TestLoginController(unittest.TestCase):
         '''Should return 500 when token generation fails'''
         mock_load.return_value = {
             "email": self.email, "password": self.password}
-        mock_get_user.return_value = {"profile_id": 1, "email": self.email}
+        mock_get_user.return_value = {"user_id": 1, "email": self.email}
         mock_token.return_value = None
 
         res = self.client.post(self.endpoint, json=self.payload)
