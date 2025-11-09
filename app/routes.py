@@ -18,7 +18,6 @@ load_dotenv()
 
 def register_routes(app):
     API_V = app.config['API_BASE']
-    # API_V = os.getenv('API_V', '/v0/api')
     api = Api(app)
 
     api.add_resource(AppHealthCheck, API_V + "/health/check")

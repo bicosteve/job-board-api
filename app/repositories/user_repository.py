@@ -85,7 +85,7 @@ class UserRepository:
                 query = """
                 INSERT INTO user(hash,email,status)
                 VALUES (%s,%s,%s)
-                """
+                """.strip()
                 cursor.execute(query, (hash, email, status))
                 conn.commit()
 
@@ -124,7 +124,7 @@ class UserRepository:
                 query_three = """
                 INSERT INTO user_setting(is_deactivated, user_id)
                 VALUES (%s,%s)
-                """
+                """.strip()
                 cursor.execute(query_three, (0, user_id))
                 insert_count = cursor.rowcount
                 conn.commit()
@@ -141,9 +141,6 @@ class UserRepository:
                 conn.rollback()
             Loggger.error(f"General error: {str(e)}")
             raise GenericDatabaseError(str(e))
-        # finally:
-        #     if conn:
-        #         conn.close()
 
     @staticmethod
     def store_reset_token(email: str, token: str) -> int:
@@ -153,7 +150,7 @@ class UserRepository:
                 query = """
                 UPDATE user SET reset_token = %s
                 WHERE email = %s
-                """
+                """.strip()
                 cursor.execute(query, (token, email))
                 conn.commit()
                 return cursor.rowcount
@@ -172,7 +169,7 @@ class UserRepository:
                 query = """
                 SELECT reset_token, updated_at
                 FROM user WHERE email = %s
-                """
+                """.strip()
                 cursor.execute(query, (email,))
                 row = cursor.fetchone()
 
