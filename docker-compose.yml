@@ -47,8 +47,10 @@ services:
     container_name: job-board-api
     ports:
       - "${PORT}:${PORT}"
-    env_file: .env
+    env_file:
+      - .env
     environment:
+      ENV: docker
       HOST: 0.0.0.0
       PORT: ${PORT}
       DB_HOST: mysql

@@ -41,6 +41,7 @@ def check_db(app):
             Loggger.info("DB connection success")
         except Exception as e:
             Loggger.exception(f"An error occured {str(e)}")
+            # sys.exit(1)
         finally:
             conn.close()
 
@@ -51,8 +52,9 @@ def check_cache(app):
     def connect_redis():
         try:
             password = app.config["REDIS_PASSWORD"]
+            host = app.config["REDIS_HOST"]
             client = redis.Redis(
-                host=app.config["REDIS_HOST"],
+                host=host,
                 port=app.config["REDIS_PORT"],
                 db=app.config["REDIS_DB"],
                 password=password if password else None,
@@ -63,6 +65,7 @@ def check_cache(app):
             Loggger.info("Redis connection success")
         except Exception as e:
             Loggger.exception(f"Something went wrong {str(e)}")
+            # sys.exit(1)
 
     retry_connection(connect_redis)
 
