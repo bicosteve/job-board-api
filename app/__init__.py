@@ -16,15 +16,16 @@ from .config import DevelopmentConfig, ProductionConfig, DockerConfig
 def create_app():
     app = Flask(__name__)
 
-    env = os.getenv('ENV', 'development').lower()
+    env = os.getenv('ENV', 'dev').lower()
 
-    # app.config.from_object("app.config.Config")
-    if env == 'docker':
-        app.config.from_object(DockerConfig)
-    elif env == 'production':
-        app.config.from_object(ProductionConfig)
-    else:
-        app.config.from_object(DevelopmentConfig)
+    config_map = {
+        "docker": DockerConfig,
+        "prod": ProductionConfig,
+        "dev": DevelopmentConfig
+    }
+
+    # Load the correct config
+    app.config.from_object(config_map.get(env, DevelopmentConfig))
 
     # Swagger init
     Swagger(app, template=swagger_template)
