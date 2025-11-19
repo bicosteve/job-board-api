@@ -27,16 +27,15 @@ class BaseConfig:
 
     # Redis
     ENV = os.getenv('ENV', 'dev')
-    REDIS_HOST = os.getenv('REDIS_HOST', 'redis' if ENV
-                           == 'docker' else 'localhost')
+    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
-    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD", None)
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
     # API
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
     CONTACT_NAME = os.getenv("CONTACT_NAME", "bicosteve")
-    CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "bicosteve@gmail.com")
+    CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "***")
     API_BASE = os.getenv("API_VERSION_BASE", "/v0/api")
 
     # Docker subnet
