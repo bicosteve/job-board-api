@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Dict, Any, Optional, Union, List
 
 from flask import jsonify, make_response
 from flask_restful import Resource, request
@@ -22,38 +23,49 @@ from ..utils.exceptions import (
 )
 from ..utils.security import Security
 from ..utils.helpers import Helpers
-from ..utils.logger import Loggger
+from ..utils.logger import Logger
 
 
-class UserRegister(Resource):
+class RegisterUserController(Resource):
     register_schema = RegisterSchema()
 
     @swag_from("../docs/register.yml")
     def post(self):
+        data: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
         try:
-            data = UserRegister.register_schema.load(request.get_json())
+            json_data = request.get_json()
+            if json_data is None:
+                raise ValueError("No JSON data provided")
+            elif isinstance(json_data, dict):
+                data = RegisterUserController.register_schema.load(json_data)
+            else:
+                raise ValueError(
+                    f"Expected JSON object, got {type(json_data)}")
         except ValidationError as e:
-            Loggger.warn(f"Validation failed during registration {str(e)}")
+            Logger.warn(f"Validation failed during registration {str(e)}")
             return {"error": str(e)}, 400
 
-        email = data["email"]
-        password = data["password"]
-        username = data["email"].split("@")[0]
+        if isinstance(data, dict):
+            email = data["email"]
+            password = data["password"]
+            username = data["email"].split("@")[0]
+        else:
+            raise ValidationError("Expected dict, got list or None")
 
         try:
-            Loggger.info(f"Attempting to register user: {email}")
+            Logger.info(f"Attempting to register user: {email}")
             user = UserService.register_user(username, email, password)
 
             if not user or user.get("rows_affected", 0) < 1:
-                Loggger.error(f"User registration failed for {email}")
+                Logger.error(f"User registration failed for {email}")
                 return {"msg": "User registration failed"}, 500
 
             code = Helpers.generate_verification_code()
             if not UserService.store_verification_code(email, code):
-                Loggger.error(f"Failed to store verification code for {email}")
+                Logger.error(f"Failed to store verification code for {email}")
                 return {"msg": "Verification code error"}, 500
 
-            Loggger.info(f"User registered successfully: {email}")
+            Logger.info(f"User registered successfully: {email}")
             return {
                 "msg": "user created",
                 "verification_code": code,
@@ -61,43 +73,47 @@ class UserRegister(Resource):
             }, 201
 
         except UserExistError as e:
-            Loggger.warn(f"User already exists: {email}-{e}")
+            Logger.warn(f"User already exists: {email}-{e}")
             return {"user_error": str(e)}, 400
 
         except GenericDatabaseError as e:
-            Loggger.error(f"Database error during registration for {email}-{str(e)}")
+            Logger.error(
+                f"Database error during registration for {email}-{str(e)}")
             return {"db_error": str(e)}, 500
 
         except Exception as e:
-            Loggger.exception(
+            Logger.exception(
                 f"Unexpected error during registration for {email} : {str(e)}"
             )
             return {"generic_error": "An unexpected error occurred"}, 500
 
 
-class UserLogin(Resource):
+class LoginUserController(Resource):
     login_schema = LoginSchema()
 
     @swag_from("../docs/login.yml")
     def post(self):
         try:
-            data = UserLogin.login_schema.load(request.get_json())
+            data = LoginUserController.login_schema.load(request.get_json())
         except ValidationError as e:
-            Loggger.warn(f"Failed payload validation on login {str(e)}")
+            Logger.warn(f"Failed payload validation on login {str(e)}")
             return {"error": str(e)}, 400
 
-        email = data["email"]
-        password = data["password"]
-
         try:
+            if isinstance(data, dict):
+                email = data['email']
+                password = data['password']
+            else:
+                raise ValueError("Expected dict, got None or list")
+
             user = UserService.get_user(email, password)
-            error = f"Failed to get user with email {email} on login"
+            error = f"Failed to get user with email {data["email"]} on login"
             if not user:
-                Loggger.warn(error)
+                Logger.warn(error)
                 return {"msg": error}, 404
             token = Security.create_jwt_token(user["user_id"], user["email"])
             if token is None:
-                Loggger.warn(f"Failed to generate token for {email}")
+                Logger.warn(f"Failed to generate token for {data["email"]}")
                 return {"msg": "Token generation error"}, 500
             response = make_response(
                 jsonify(
@@ -108,21 +124,21 @@ class UserLogin(Resource):
                 ),
                 200,
             )
-            Loggger.info(f"Login success {response}")
+            Logger.info(f"Login success {response}")
             response.headers["Authorization"] = f"Bearer {token}"
             return response
         except GenericDatabaseError as e:
-            Loggger.error(f"DB error during login {str(e)}")
+            Logger.error(f"DB error during login {str(e)}")
             return {"db_error": str(e)}, 500
         except InvalidCredentialsError as e:
-            Loggger.warn(f"Invalid credentials error {str(e)}")
+            Logger.warn(f"Invalid credentials error {str(e)}")
             return {"credentials_error": str(e)}, 401
         except Exception as e:
-            Loggger.exception(f"Unexpected error during login {str(e)}")
+            Logger.exception(f"Unexpected error during login {str(e)}")
             return {"generic_error": str(e)}, 500
 
 
-class UserProfile(Resource):
+class UserProfileController(Resource):
     """Get user profile"""
 
     @swag_from("../docs/get_profile.yml")
@@ -130,10 +146,10 @@ class UserProfile(Resource):
         """Gets user profile and return the details"""
         auth_header = request.headers.get("Authorization")
         if not auth_header:
-            Loggger.warn("Authorization missing header")
+            Logger.warn("Authorization missing header")
             return {"error": "Authorization missing header"}, 401
         if not auth_header.startswith("Bearer "):
-            Loggger.warn("Invalid authorization header format")
+            Logger.warn("Invalid authorization header format")
             return {"error": "Invalid authorization header format"}, 401
 
         token = auth_header.split(" ")[1]
@@ -143,29 +159,29 @@ class UserProfile(Resource):
             profile_id = payload.get("profile_id", "")
 
             if not profile_id:
-                Loggger.warn("Profile id not found for user")
+                Logger.warn("Profile id not found for user")
                 return {"error": "Invalid payload"}, 401
 
             user = UserService.get_user_profile(profile_id)
             if not user:
-                Loggger.warn(f"No user with profile {profile_id}")
+                Logger.warn(f"No user with profile {profile_id}")
                 return {"error": "User not found"}, 404
 
-            Loggger.info(f"Returning profile {user}")
+            Logger.info(f"Returning profile {user}")
             return user, 200
 
         except ExpiredSignatureError as e:
-            Loggger.warn(f"Expired token signature {str(e)}")
+            Logger.warn(f"Expired token signature {str(e)}")
             return {"error": "token has expired"}, 401
         except InvalidTokenError as e:
-            Loggger.warn(f"Invalid token signature {str(e)}")
+            Logger.warn(f"Invalid token signature {str(e)}")
             return {"error": "Invalid token"}, 401
         except Exception as e:
-            Loggger.exception(f"Unexpected error occured {str(e)}")
+            Logger.exception(f"Unexpected error occured {str(e)}")
             return {"error": str(e)}, 500
 
 
-class AppHealthCheck(Resource):
+class CheckAppHealthController(Resource):
     """Get the app status"""
 
     @swag_from("../docs/get_health.yml")
@@ -184,91 +200,105 @@ class AppHealthCheck(Resource):
         }, 200
 
 
-class UserVerifyAccount(Resource):
+class VerifyUserAccountController(Resource):
     verify_account_schema = VerifyAccountSchema()
 
     @swag_from("../docs/verify_account.yml")
     def post(self):
         try:
-            data = UserVerifyAccount.verify_account_schema.load(request.get_json())
+            data = VerifyUserAccountController.verify_account_schema.load(
+                request.get_json())
         except ValidationError as e:
-            Loggger.warn(f"An error occured while validating payload {str(e)}")
+            Logger.warn(f"An error occured while validating payload {str(e)}")
             return {"validation_error": str(e)}, 400
 
-        email = data.get("email")
-        code = data.get("verification_code")
+        if isinstance(data, dict):
+            email = data["email"]
+            code = data["verification_code"]
+        else:
+            raise ValueError("Expected a dict, got None or list")
 
         try:
             is_verified = UserService.verify_account(email, code)
             if not is_verified:
-                Loggger.warn(f"Error while verifying account {email}")
+                Logger.warn(f"Error while verifying account {email}")
                 return {"error": "error while verifying account"}, 500
             return {"msg": "account verification success"}, 200
         except UserExistError as e:
-            Loggger.warn(f"{str(e)}")
+            Logger.warn(f"{str(e)}")
             return {"user_error": str(e)}, 400
         except GenericDatabaseError as e:
-            Loggger.warn(f"DB error {str(e)} during account verification")
+            Logger.warn(f"DB error {str(e)} during account verification")
             return {"db_error": str(e)}, 500
         except Exception as e:
-            Loggger.exception(f"Unexpected error occurred {str(e)}")
+            Logger.exception(f"Unexpected error occurred {str(e)}")
             return {"generic_error": str(e)}, 500
 
 
-class ResetPasswordRequest(Resource):
+class RequestUserPasswordResetController(Resource):
     request_reset_password_schema = RequestResetPasswordSchema()
 
     @swag_from("../docs/request_reset_code.yml")
     def post(self):
         try:
-            data = ResetPasswordRequest.request_reset_password_schema.load(
+            data = RequestUserPasswordResetController.request_reset_password_schema.load(
                 request.get_json()
             )
         except ValidationError as e:
-            Loggger.warn(f"Error while validating payload {str(e)}")
+            Logger.warn(f"Error while validating payload {str(e)}")
             return {"validation_error": str(e)}, 400
 
+        if isinstance(data, dict):
+            email = data['email']
+        else:
+            raise ValueError("Expected dict, got None or list")
+
         try:
-            email = data.get("email", "")
             token_data = UserService.store_reset_token(email)
             if not token_data:
-                Loggger.warn("An error occurred while storing reset token")
+                Logger.warn("An error occurred while storing reset token")
                 return {"error": "An error occurred while storing reset token"}, 500
             return {"data": token_data}, 201
         except Exception as e:
-            Loggger.exception(f"Unexpected error {str(e)} occurred")
+            Logger.exception(f"Unexpected error {str(e)} occurred")
             return {"generic_error": str(e)}, 500
 
 
-class AccountPasswordReset(Resource):
+class ResetUserPasswordController(Resource):
     reset_password_schema = ResetPasswordSchema()
 
     @swag_from("../docs/password_reset.yml")
     def post(self):
-        token = request.args.get("token")
-        if len(token) < 1:
-            Loggger.warn("No reset token provided in the request")
+        token = str(request.args.get("token"))
+        if len(token) < 1 or None:
+            Logger.warn("No reset token provided in the request")
             return {"validation_error": "Token is required"}
 
         try:
-            data = AccountPasswordReset.reset_password_schema.load(request.get_json())
+            data = ResetUserPasswordController.reset_password_schema.load(
+                request.get_json())
         except ValidationError as e:
-            Loggger.warn(f"Error validating the payload {str(e)}")
+            Logger.warn(f"Error validating the payload {str(e)}")
             return {"validation_error": f"payload error {str(e)}"}
         except Exception as e:
-            Loggger.exception(f"Unexpected error {str(e)} occurred")
+            Logger.exception(f"Unexpected error {str(e)} occurred")
             return {"generic_error": str(e)}, 500
+
+        if isinstance(data, dict):
+            password = data['password']
+        else:
+            raise ValueError("Expected dict,got None or List")
 
         try:
             email = Helpers.verify_reset_token(token, 3600)
             if email is None:
-                Loggger.warn("Cannot verify reset token for user")
+                Logger.warn("Cannot verify reset token for user")
                 return {"error": "Cannot verify reset token"}, 400
 
-            if not UserService.change_password(email, data.get("password")):
-                Loggger.error(f"Failed to reset password for {email}")
+            if not UserService.change_password(email, password):
+                Logger.error(f"Failed to reset password for {email}")
                 return {"error": f"Failed to reset password for {email}"}, 500
             return {"msg": "Password changed successfully"}, 200
         except Exception as e:
-            Loggger.exception(f"Unexpected error {str(e)} occurred")
+            Logger.exception(f"Unexpected error {str(e)} occurred")
             return {"generic_error": str(e)}, 500

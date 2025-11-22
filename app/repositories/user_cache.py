@@ -26,8 +26,8 @@ class UserCache:
     def store_verification_code(email, code) -> bool:
         client = Cache.connect_redis()
         ttl = 6 * 60 * 60
-        result = client.setex(f"verify#{email}", ttl, code)
-        return result
+        res = bool(client.setex(f"verify#{email}", ttl, code))
+        return res
 
     @staticmethod
     def verify_code(email, submitted_code) -> bool:
@@ -44,14 +44,14 @@ class UserCache:
     def hold_reset_token(email, data) -> bool:
         ttl = 60 * 60
         client = Cache.connect_redis()
-        result = client.setex(
-            f'reset#{email}', ttl, json.dumps(data))
-        return result
+        res = bool(client.setex(
+            f'reset#{email}', ttl, json.dumps(data)))
+        return res
 
     @staticmethod
-    def retrieve_reset_token(email, submitted_token) -> str:
+    def retrieve_reset_token(email, submitted_token) -> str | None:
         client = Cache.connect_redis()
-        raw = client.get(f'reset#{email}')
+        raw = str(client.get(f'reset#{email}'))
         if raw is None:
             return None
         data = json.loads(raw)

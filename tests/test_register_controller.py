@@ -3,7 +3,7 @@ from unittest.mock import patch
 from flask import Flask, json
 from marshmallow import ValidationError
 
-from app.controllers.user_controllers import UserRegister
+from app.controllers.user_controllers import RegisterUserController
 from app.utils.exceptions import UserExistError
 
 
@@ -14,7 +14,7 @@ class TestRegisterController(unittest.TestCase):
 
         # add the resource endpoint manually
         self.app.add_url_rule(
-            '/register', view_func=UserRegister.as_view('register'))
+            '/register', view_func=RegisterUserController.as_view('register'))
 
         self.email = 'john.doe@example.com'
         self.password = 'secure1234'
