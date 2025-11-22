@@ -3,7 +3,7 @@ from unittest.mock import patch
 from flask import Flask
 from marshmallow import ValidationError
 
-from app.controllers.user_controllers import UserLogin
+from app.controllers.user_controllers import LoginUserController
 from app.utils.exceptions import InvalidCredentialsError
 
 
@@ -17,7 +17,7 @@ class TestLoginController(unittest.TestCase):
         self.password = 'pass123'
 
         self.app.add_url_rule(
-            self.endpoint, view_func=UserLogin.as_view('login')
+            self.endpoint, view_func=LoginUserController.as_view('login')
         )
 
         self.payload = {

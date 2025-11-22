@@ -9,7 +9,7 @@ from .db.redis import Cache
 from .routes import register_routes
 from .template import swagger_template
 from .utils.init import init_dependencies
-from .utils.logger import Loggger
+from .utils.logger import Logger
 from .config import DevelopmentConfig, ProductionConfig, DockerConfig
 
 
@@ -37,6 +37,6 @@ def create_app():
 
     register_routes(app)
 
-    Loggger.info(f"All clear. App running on port {5005}...")
+    Logger.info(f"All clear. App running on port {5005}...")
 
     return app

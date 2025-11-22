@@ -11,25 +11,25 @@ logging.basicConfig(
 )
 
 
-class Loggger:
+class Logger:
     log = logging.getLogger()
 
     @staticmethod
     def info(msg: str) -> None:
-        Loggger.log.info(msg, stacklevel=2)
+        Logger.log.info(msg, stacklevel=2)
 
     @staticmethod
     def error(msg: str) -> None:
-        Loggger.log.error(msg, stacklevel=2)
+        Logger.log.error(msg, stacklevel=2)
 
     @staticmethod
     def warn(msg: str) -> None:
-        Loggger.log.warning(msg, stacklevel=2)
+        Logger.log.warning(msg, stacklevel=2)
 
     @staticmethod
     def critical(msg: str) -> None:
-        Loggger.log.critical(msg, stacklevel=2)
+        Logger.log.critical(msg, stacklevel=2)
 
     @staticmethod
     def exception(msg: str) -> None:
-        Loggger.log.exception(msg, stacklevel=2)
+        Logger.log.exception(msg, stacklevel=2)

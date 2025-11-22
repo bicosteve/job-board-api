@@ -6,7 +6,7 @@ import pymysql
 import redis
 
 
-from .logger import Loggger
+from .logger import Logger
 
 
 def retry_connection(func, retries=3, delay=2, backoff=2):
@@ -22,7 +22,7 @@ def retry_connection(func, retries=3, delay=2, backoff=2):
         except Exception as e:
             if attempt == retries:
                 raise e
-            Loggger.warn(f"Attempt {attempt} failed. Retrying in {delay}s..")
+            Logger.warn(f"Attempt {attempt} failed. Retrying in {delay}s..")
             time.sleep(delay)
             delay *= backoff
 
@@ -39,9 +39,9 @@ def check_db(app):
                 connect_timeout=5,
             )
 
-            Loggger.info("DB connection success")
+            Logger.info("DB connection success")
         except Exception as e:
-            Loggger.exception(f"An error occured {str(e)}")
+            Logger.exception(f"An error occured {str(e)}")
             sys.exit(1)
         finally:
             if conn is not None:
@@ -72,11 +72,11 @@ def check_cache(app):
 
             if client is not None:
                 client.ping()
-                Loggger.info("Redis connection success")
+                Logger.info("Redis connection success")
             else:
-                Loggger.error("Redis connection not success")
+                Logger.error("Redis connection not success")
         except Exception as e:
-            Loggger.exception(f"Something went wrong {str(e)}")
+            Logger.exception(f"Something went wrong {str(e)}")
             sys.exit(1)
 
     retry_connection(connect_redis)
@@ -88,18 +88,18 @@ def init_dependencies(app):
     are reachable with retry logic.
     """
 
-    Loggger.info("Checking dependencies...")
+    Logger.info("Checking dependencies...")
 
     # ==== 1. Check MySQL ====
     try:
         check_db(app)
     except Exception as e:
-        Loggger.error(f"DB connection failed becase of: {str(e)}")
+        Logger.error(f"DB connection failed becase of: {str(e)}")
         sys.exit(1)
 
     # ==== 2. Check Redis ====
     try:
         check_cache(app)
     except Exception as e:
-        Loggger.error(f"Redis connection failed because of {str(e)}")
+        Logger.error(f"Redis connection failed because of {str(e)}")
         sys.exit(1)
