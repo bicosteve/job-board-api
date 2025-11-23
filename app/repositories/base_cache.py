@@ -5,7 +5,7 @@ from ..db.redis import Cache
 from ..utils.helpers import Helpers
 
 
-class UserCache:
+class BaseCache:
     '''
     Has methods that are used to access objects in cache
     '''
@@ -26,17 +26,21 @@ class UserCache:
     def store_verification_code(email, code) -> bool:
         client = Cache.connect_redis()
         ttl = 6 * 60 * 60
-        result = client.setex(f"verify#{email}", ttl, code)
-        return result
+        res = bool(client.setex(f"verify#{email}", ttl, code))
+        return res
 
     @staticmethod
     def verify_code(email, submitted_code) -> bool:
         client = Cache.connect_redis()
-        stored_code = client.get(f"verify#{email}")
-        if stored_code is None:
+        raw = client.get(f"verify#{email}")
+        if not raw:
             return False
-        if stored_code != submitted_code:
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8')
+
+        if raw != submitted_code:
             return False
+
         client.delete(f"verify#{email}")
         return True
 
@@ -44,19 +48,27 @@ class UserCache:
     def hold_reset_token(email, data) -> bool:
         ttl = 60 * 60
         client = Cache.connect_redis()
-        result = client.setex(
-            f'reset#{email}', ttl, json.dumps(data))
-        return result
+        res = bool(client.setex(
+            f'reset#{email}', ttl, json.dumps(data)))
+        return res
 
     @staticmethod
-    def retrieve_reset_token(email, submitted_token) -> str:
+    def retrieve_reset_token(email: str, submitted_token: str) -> str | None:
         client = Cache.connect_redis()
         raw = client.get(f'reset#{email}')
+
         if raw is None:
             return None
-        data = json.loads(raw)
 
-        if data['token'] != submitted_token:
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8')
+
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+
+        if data.get('token') != submitted_token:
             return None
 
         has_expired = Helpers.compare_token_time(data)

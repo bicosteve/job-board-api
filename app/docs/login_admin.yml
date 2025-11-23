@@ -1,8 +1,8 @@
 tags:
-  - User Authentication
-# summary: User Login
-operationId: loginUser
-description: Authenticates a user and return a JWT token on successful login.
+  - Admin Authentication
+# summary: Admin Login
+operationId: loginAdmin
+description: Authenticate admin user and return a JWT token.
 cunsumes:
   - application/json
 produces:

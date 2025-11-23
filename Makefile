@@ -5,10 +5,13 @@ test:
 	python -m unittest discover -s tests
 
 coverage:
-	coverage run -m unittest discover -s tests
+	coverage run -m unittest discover -s tests -t .
+
+report:
+	coverage report -m
 
 containers:
-	docker compose up --build -d
+	docker compose --env-file .env.docker up --build -d
 
 container_logs:
 	docker compose logs -f

@@ -33,7 +33,13 @@ class Security:
     def create_jwt_token(profile_id, email) -> str:
         """Generate jwt token with profile_id and email as payload"""
         secret = os.getenv('JWT_SECRET')
+        if secret is None:
+            raise ValueError("JWT_Secret env var is not set")
+
         algorithm = os.getenv('JWT_ALGORITHM')
+        if algorithm is None:
+            raise ValueError("JWT_ALGORITHM env var is not set")
+
         expiry_hours = int(os.getenv('JWT_TOKEN_EXPIRY_HOURS', '24'))
         now = datetime.datetime.now(datetime.UTC)
         exp_time = now + datetime.timedelta(hours=expiry_hours)
@@ -53,7 +59,12 @@ class Security:
     def decode_jwt_token(token):
         """Decodes jwt token and returns profile object"""
         secret = os.getenv('JWT_SECRET')
+        if secret is None:
+            raise ValueError("JWT_Secret env var is not set")
+
         algorithm = os.getenv('JWT_ALGORITHM')
+        if algorithm is None:
+            raise ValueError("JWT_ALGORITHM env var is not set")
 
         try:
             payload = jwt.decode(token, secret, algorithms=[algorithm])
