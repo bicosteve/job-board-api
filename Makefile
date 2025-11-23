@@ -7,6 +7,9 @@ test:
 coverage:
 	coverage run -m unittest discover -s tests
 
+report:
+	coverage report -m
+
 containers:
 	docker compose --env-file .env.docker up --build -d
 
