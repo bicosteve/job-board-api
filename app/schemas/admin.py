@@ -65,7 +65,7 @@ class VerifyAdminSchema(Schema):
         validate=[
             validate.Email()
         ],
-        error_message="Email field is required"
+        error_messages={"error": "Email field is required"}
     )
 
     verification_code = fields.Str(
@@ -73,5 +73,5 @@ class VerifyAdminSchema(Schema):
         validate=[
             validate.Length(min=6, error="code must be 6 characters")
         ],
-        error_message="verification code is required"
+        error_messages={"error": "verification code is required"}
     )
