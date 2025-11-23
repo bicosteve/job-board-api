@@ -26,11 +26,13 @@ class Helpers:
 
     @staticmethod
     def verify_reset_token(token, max_age=expiry_time) -> str | None:
+        if max_age is not None and isinstance(max_age, str):
+            max_age = int(max_age)
         try:
             email = s.loads(token, salt="password-reset-salt", max_age=max_age)
             return email
         except SignatureExpired:
-            raise "Signature expired"
+            raise Exception("Signature expired")
         except BadSignature:
             raise Exception("Token is invalid or tampered with")
 

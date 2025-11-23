@@ -1,8 +1,7 @@
 tags:
-  - User Authentication
-# summary: User Verify Account
+  - Admin Authentication
 operationId: verifyAccount
-description: Verify user's account and change status to allow login.
+description: Verify admin user account to allow login.
 consumes:
   - application/json
 produces:

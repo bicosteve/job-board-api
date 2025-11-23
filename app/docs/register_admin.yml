@@ -1,8 +1,8 @@
 tags:
-  - User Authentication
-# summary: Reset Password
-operationId: resetPassword
-description: Allows user to reset the password.
+  - Admin Authentication
+# summary: Admin Registration
+operationId: registerAdmin
+description: Registers a new admin user and returns a success message.
 consumes:
   - application/json
 produces:
@@ -14,6 +14,9 @@ parameters:
     schema:
       type: object
       properties:
+        email:
+          type: string
+          example: johndoe@example.com
         password:
           type: string
           example: secretpassword
@@ -21,14 +24,15 @@ parameters:
           type: string
           example: secretpassword
       required:
+        - email
         - password
         - confirm_password
 responses:
-  200:
+  201:
     description: User created successfully
   400:
     description: Validation error
-  401:
-    description: Bad request
+  409:
+    description: User already exists
   500:
     description: Internal server error
