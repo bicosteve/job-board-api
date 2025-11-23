@@ -5,7 +5,7 @@ test:
 	python -m unittest discover -s tests
 
 coverage:
-	coverage run -m unittest discover -s tests
+	coverage run -m unittest discover -s tests -t .
 
 report:
 	coverage report -m
