@@ -111,21 +111,22 @@ class LoginUserController(Resource):
             if not user:
                 Logger.warn(error)
                 return {"msg": error}, 404
-            token = Security.create_jwt_token(user["user_id"], user["email"])
-            if token is None:
-                Logger.warn(f"Failed to generate token for {data["email"]}")
-                return {"msg": "Token generation error"}, 500
+
+            if "token" not in user or not user['token']:
+                Logger.error("Token generation failed during login")
+                return {"msg": "Token generation failed"}, 500
+
             response = make_response(
                 jsonify(
                     {
                         "msg": "Login success",
-                        "token": token,
+                        "token": user['token']
                     }
                 ),
                 200,
             )
             Logger.info(f"Login success {response}")
-            response.headers["Authorization"] = f"Bearer {token}"
+            response.headers["Authorization"] = f"Bearer {user['token']}"
             return response
         except GenericDatabaseError as e:
             Logger.error(f"DB error during login {str(e)}")

@@ -32,11 +32,15 @@ class BaseCache:
     @staticmethod
     def verify_code(email, submitted_code) -> bool:
         client = Cache.connect_redis()
-        stored_code = client.get(f"verify#{email}")
-        if stored_code is None:
+        raw = client.get(f"verify#{email}")
+        if not raw:
             return False
-        if stored_code != submitted_code:
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8')
+
+        if raw != submitted_code:
             return False
+
         client.delete(f"verify#{email}")
         return True
 
@@ -49,14 +53,22 @@ class BaseCache:
         return res
 
     @staticmethod
-    def retrieve_reset_token(email, submitted_token) -> str | None:
+    def retrieve_reset_token(email: str, submitted_token: str) -> str | None:
         client = Cache.connect_redis()
-        raw = str(client.get(f'reset#{email}'))
+        raw = client.get(f'reset#{email}')
+
         if raw is None:
             return None
-        data = json.loads(raw)
 
-        if data['token'] != submitted_token:
+        if isinstance(raw, bytes):
+            raw = raw.decode('utf-8')
+
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+
+        if data.get('token') != submitted_token:
             return None
 
         has_expired = Helpers.compare_token_time(data)

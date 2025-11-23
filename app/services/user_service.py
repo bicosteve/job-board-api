@@ -12,7 +12,8 @@ from ..utils.exceptions import (
     GenericRedisError,
     GenericGenerateResetTokenError,
     GenericPasswordHashError,
-    UserDoesNotExistError
+    UserDoesNotExistError,
+    GenericGenerateAuthTokenError
 )
 from ..utils.helpers import Helpers
 from ..utils.logger import Logger
@@ -53,6 +54,12 @@ class UserService:
         if not Security.check_password(password, user["hash"]):
             Logger.warn(f"Invalid password for user {email}")
             raise InvalidCredentialsError("Invalid email or password")
+
+        token = Security.create_jwt_token(user['user_id'], user['email'])
+        if not token:
+            raise GenericGenerateAuthTokenError("Failed to generate token")
+
+        user['token'] = token
 
         return user
 

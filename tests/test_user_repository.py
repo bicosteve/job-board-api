@@ -31,6 +31,7 @@ class TestUserRepository(unittest.TestCase):
 
             # Act
             result = UserRepository.find_user_by_mail("test@example.com")
+            self.assertTrue(isinstance(result, dict))
 
             # Assert
             mock_cursor.execute.assert_called_once()
@@ -146,7 +147,7 @@ class TestUserRepository(unittest.TestCase):
         # Assert
         # Normalize whitespace in the executed SQL
         executed_sql = " ".join(mock_cursor.execute.call_args[0][0].split())
-        expected_sql = "INSERT INTO user(hash,email,status) VALUES (%s,%s,%s)"
+        expected_sql = "INSERT INTO `user`(hash,email,status) VALUES (%s,%s,%s)"
         self.assertEqual(executed_sql, expected_sql)
 
         # Check parameters
@@ -174,7 +175,7 @@ class TestUserRepository(unittest.TestCase):
         mock_conn.commit.assert_called_once()
         self.assertEqual(result, 0)
 
-    @patch("app.repositories.user_repository.Loggger")
+    @patch("app.repositories.user_repository.Logger")
     @patch("app.repositories.user_repository.DB.get_db")
     def test_add_user_mysql_error(self, mock_get_db, mock_logger):
         # Arrange
@@ -187,7 +188,7 @@ class TestUserRepository(unittest.TestCase):
             UserRepository.add_user("test@example.com", "hashp", 1)
         mock_logger.error.assert_called()
 
-    @patch("app.repositories.user_repository.Loggger")
+    @patch("app.repositories.user_repository.Logger")
     @patch("app.repositories.user_repository.DB.get_db")
     def test_add_user_pymysql_error(self, mock_get_db, mock_logger):
         # Arrange
