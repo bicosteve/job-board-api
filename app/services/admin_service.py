@@ -8,10 +8,12 @@ from ..utils.exceptions import (
     GenericDatabaseError,
     InvalidLoginAttemptError,
     GenericPasswordHashError,
-    UserDoesNotExistError
+    UserDoesNotExistError,
+    GenericRedisError
 )
 from ..utils.helpers import Helpers
 from ..utils.logger import Logger
+from ..repositories.base_cache import BaseCache
 
 
 class AdminService:
@@ -56,30 +58,39 @@ class AdminService:
     def add_admin_user(data: dict[str, str]) -> dict[str, int] | None:
         if isinstance(data, dict):
 
-            # 0. Check if the user exists and if yes raise UserExistError()
-            admin_user = AdminRepository.find_admin_by_email(data['email'])
+            # 1. Get the data object values
+            email = data['email']
+            username = email.split("@")[0]
+            verification_code = data['verification_code']
+
+            # 2. Check if the user exists and if yes raise UserExistError()
+            admin_user = AdminRepository.find_admin_by_email(email)
             Logger.info("Logging admin user" + str(admin_user))
             if admin_user is not None:
                 raise UserExistError(
                     f"User with {data['email']} already exists")
 
-            # 1. Get/Generate username
-            username = data['email'].split("@")[0]
-
-            # 2. Generate password hash
+            # 3. Generate password hash
             password_hash = Security.hash_password(data['password'])
 
-            # 3. Package the data into an object/dict and send to repo
+            # 4. Store verification code in redis
+            is_stored = BaseCache.store_verification_code(
+                email, verification_code)
+            if not is_stored:
+                raise GenericRedisError(
+                    "Verification code not stored in redis")
+
+            # 5. Package the data into an object/dict and send to repo
             obj = {
-                "email": data['email'],
+                "email": email,
                 "username": username,
                 "password_hash": password_hash
             }
 
             Logger.info(f"Generated admin object {obj}")
 
-            # 4. Send to Admin repository for further processing
-            Logger.info(f"Adding admin user to database")
+            # 6. Send to Admin repository for further processing
+            Logger.info(f"Adding admin user {obj} to database")
             res = AdminRepository.add_admin(obj)
             if res is None:
                 Logger.warn("Error adding admin user")
@@ -91,3 +102,58 @@ class AdminService:
                     "An error occured while adding user")
             return {"rows": res}
         return None
+
+    @staticmethod
+    def verify_admin_user(data: dict[str, str]) -> dict | None :
+        if isinstance(data, dict):
+            email = data['email']
+            status = int(data['active_status'])
+            code = data['verification_code']
+
+            has_code = BaseCache.verify_code(email, code)
+            Logger.info(f"Admin has verification code {has_code}")
+            if not has_code:
+                return None
+
+            res = AdminRepository.update_admin_status(email, status)
+            Logger.info(f"Admin repo res {res}")
+            if res is None:
+                Logger.warn("Error verifying admin user")
+                return None
+
+            if res < 1:
+                Logger.warn(f"Error verifying admin user {email}")
+                raise GenericDatabaseError("Admin user not verified")
+
+            return {"res": res}
+
+        return None
+
+    @staticmethod
+    def deactivate_admin_user(data: dict[str, str]) -> dict | None:
+        if not isinstance(data, dict):
+            return None
+
+        email = data['email']
+        active_status = int(data['active_status'])
+
+        res = AdminRepository.update_admin_status(email, active_status)
+
+        if res is None:
+            Logger.warn(f"Failed to deactivate admin user {email}")
+            return None
+
+        if res < 1:
+            Logger.warn(f"Error verifying admin user {email}")
+            raise GenericDatabaseError("Admin user not deactivated")
+
+        return {'res': res}
+
+    @staticmethod
+    def store_verification_code(data: dict[str, str]) -> bool:
+        try:
+            email = data['email']
+            code = data['code']
+            return BaseCache.store_verification_code(email, code)
+        except GenericRedisError as e:
+            raise GenericRedisError(f"{str(e)}")

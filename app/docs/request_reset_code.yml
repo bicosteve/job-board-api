@@ -1,6 +1,7 @@
 tags:
-  - Authentication
-summary: Request Password Reset Code
+  - User Authentication
+# summary: Request Password Reset Code
+operationId: requestResetCode
 description: User request password reset code & token.
 consumes:
   - application/json

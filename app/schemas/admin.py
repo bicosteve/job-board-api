@@ -57,3 +57,21 @@ class LoginAdminSchema(Schema):
         ],
         error_messages={"error": "Password cannot be empty"}
     )
+
+
+class VerifyAdminSchema(Schema):
+    email = fields.Email(
+        required=True,
+        validate=[
+            validate.Email()
+        ],
+        error_message="Email field is required"
+    )
+
+    verification_code = fields.Str(
+        required=True,
+        validate=[
+            validate.Length(min=6, error="code must be 6 characters")
+        ],
+        error_message="verification code is required"
+    )

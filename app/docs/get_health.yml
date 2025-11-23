@@ -1,6 +1,7 @@
 tags:
-  - HealthCheck
-summary: Get status of the app
+  - App HealthCheck
+# summary: Get status of the app
+operationId: appHealth
 description: Used to check if the app is running
 produces:
   - application/json
