@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from ..repositories.user_repository import UserRepository
-from ..repositories.user_cache import UserCache
+from ..repositories.base_cache import BaseCache
 from ..utils.security import Security
 from ..utils.exceptions import (
     InvalidCredentialsError,
@@ -72,12 +72,12 @@ class UserService:
 
     @staticmethod
     def store_verification_code(email, code) -> bool:
-        return UserCache.store_verification_code(email, code)
+        return BaseCache.store_verification_code(email, code)
 
     @staticmethod
     def verify_account(email, code) -> bool:
         try:
-            has_code = UserCache.verify_code(email, code)
+            has_code = BaseCache.verify_code(email, code)
             active = 1
             if has_code:
                 return UserRepository.update_user_status(email, active) > 1
@@ -98,7 +98,7 @@ class UserService:
                 "token": token,
                 "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             }
-            is_held = UserCache.hold_reset_token(email, data)
+            is_held = BaseCache.hold_reset_token(email, data)
             if not is_held:
                 Logger.error(
                     "An error occurred while storing reset token in redis")
@@ -117,7 +117,7 @@ class UserService:
     @staticmethod
     def get_reset_token(email: str, submitted_token: str) -> str:
         try:
-            tkn = UserCache.retrieve_reset_token(email, submitted_token)
+            tkn = BaseCache.retrieve_reset_token(email, submitted_token)
             if not tkn:
                 data = UserRepository.get_reset_token(email)
                 if not data:

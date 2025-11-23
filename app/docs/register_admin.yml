@@ -1,6 +1,7 @@
 tags:
   - Admin Authentication
-summary: Admin Registration
+# summary: Admin Registration
+operationId: registerAdmin
 description: Registers a new admin user and returns a success message.
 consumes:
   - application/json

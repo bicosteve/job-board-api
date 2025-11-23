@@ -15,7 +15,8 @@ from .controllers.user_controllers import (
 
 from .controllers.admin_controllers import (
     RegisterAdminController,
-    LoginAdminController
+    LoginAdminController,
+    VerifyAdminAccountController
 )
 
 load_dotenv()
@@ -39,3 +40,4 @@ def register_routes(app):
     # Admin Routes
     api.add_resource(RegisterAdminController, f"{base}/admin/register")
     api.add_resource(LoginAdminController, f"{base}/admin/login")
+    api.add_resource(VerifyAdminAccountController, f"{base}/admin/verify")

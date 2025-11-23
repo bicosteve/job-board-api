@@ -5,7 +5,7 @@ from ..db.redis import Cache
 from ..utils.helpers import Helpers
 
 
-class UserCache:
+class BaseCache:
     '''
     Has methods that are used to access objects in cache
     '''

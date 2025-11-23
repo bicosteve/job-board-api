@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 import json
 
-from app.repositories.user_cache import UserCache
+from app.repositories.base_cache import BaseCache
 
 
 class TestUserCache(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestUserCache(unittest.TestCase):
         client.setex.return_value = True
         mock_connect_redis.return_value = client
 
-        result = UserCache.store_verification_code(self.email, self.code)
+        result = BaseCache.store_verification_code(self.email, self.code)
 
         client.setex.assert_called_once_with(
             f"verify#{self.email}", 6 * 60 * 60, "123456")
@@ -34,7 +34,7 @@ class TestUserCache(unittest.TestCase):
         client.setex.return_value = False
         mock_connect_redis.return_value = client
 
-        result = UserCache.store_verification_code(self.email, self.code)
+        result = BaseCache.store_verification_code(self.email, self.code)
         self.assertFalse(result)
 
     @patch("app.repositories.user_cache.Cache.connect_redis")
@@ -43,7 +43,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = self.code
         mock_connect_redis.return_value = client
 
-        result = UserCache.verify_code(self.email, self.code)
+        result = BaseCache.verify_code(self.email, self.code)
 
         client.get.assert_called_once_with(f'verify#{self.email}')
         client.delete.assert_called_once_with(f'verify#{self.email}')
@@ -56,7 +56,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = None
         mock_connect_redis.return_value = client
 
-        result = UserCache.verify_code(self.email, self.code)
+        result = BaseCache.verify_code(self.email, self.code)
 
         self.assertFalse(result)
         client.delete.assert_not_called()
@@ -67,7 +67,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = "654321"
         mock_connect_redis.return_value = client
 
-        result = UserCache.verify_code(self.email, self.code)
+        result = BaseCache.verify_code(self.email, self.code)
 
         self.assertFalse(result)
         client.delete.assert_not_called()
@@ -78,7 +78,7 @@ class TestUserCache(unittest.TestCase):
         client.setex.return_value = True
         mock_connect_redis.return_value = client
 
-        result = UserCache.hold_reset_token(self.email, self.toke_data)
+        result = BaseCache.hold_reset_token(self.email, self.toke_data)
 
         client.setex.assert_called_once_with(
             f'reset#{self.email}', 60 * 60, json.dumps(self.toke_data)
@@ -94,7 +94,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = json.dumps(self.toke_data)
         mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token(self.email, self.code)
+        result = BaseCache.retrieve_reset_token(self.email, self.code)
 
         client.get.assert_called_once_with(f'reset#{self.email}')
         client.delete.assert_called_once_with(f'reset#{self.email}')
@@ -108,7 +108,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = json.dumps(self.toke_data)
         mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token(self.email, self.code)
+        result = BaseCache.retrieve_reset_token(self.email, self.code)
 
         self.assertIsNone(result)
         client.delete.assert_not_called()
@@ -119,7 +119,7 @@ class TestUserCache(unittest.TestCase):
         client.get.return_value = None
         mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token(self.email, self.code)
+        result = BaseCache.retrieve_reset_token(self.email, self.code)
 
         self.assertIsNone(result)
         client.delete.assert_not_called()
@@ -131,7 +131,7 @@ class TestUserCache(unittest.TestCase):
             {"token": "333444", "created_at": "timestamp"})
         mock_connect_redis.return_value = client
 
-        result = UserCache.retrieve_reset_token(self.email, self.code)
+        result = BaseCache.retrieve_reset_token(self.email, self.code)
 
         self.assertIsNone(result)
         client.delete.assert_not_called()

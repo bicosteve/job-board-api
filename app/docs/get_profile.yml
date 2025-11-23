@@ -1,6 +1,7 @@
 tags:
-  - User
-summary: Get user profile
+  - User Profile
+# summary: Get user profile
+operationId: getProfile
 description: |
   Retrieves a user's profile information based on the JWT token provided in the Authorization header.
   The token must be in the format `Bearer <token>`.

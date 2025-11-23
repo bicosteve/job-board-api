@@ -1,6 +1,7 @@
 tags:
-  - Authentication
-summary: User Registration
+  - User Authentication
+# summary: User Registration
+operationId: registerUser
 description: Registers a new user and returns a success message.
 consumes:
   - application/json
