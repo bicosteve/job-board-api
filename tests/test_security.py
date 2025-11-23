@@ -40,8 +40,8 @@ class TestSecurity(unittest.TestCase):
     def test_create_jwt_token_contains_profile_and_email(self):
         token = Security.create_jwt_token(self.profile_id, self.email)
         algorithm = os.getenv('JWT_ALGORITHM')
-        decoded = jwt.decode(token, os.getenv(
-            'JWT_SECRET'), algorithms=[algorithm])
+        decoded = jwt.decode(token, str(os.getenv(
+            'JWT_SECRET')), algorithms=[str(algorithm)])
 
         self.assertEqual(decoded['profile_id'], self.profile_id)
         self.assertEqual(decoded['email'], self.email)
@@ -72,7 +72,7 @@ class TestSecurity(unittest.TestCase):
 
         token = jwt.encode(
             expired_payload,
-            os.getenv('JWT_SECRET'),
+            str(os.getenv('JWT_SECRET')),
             algorithm=os.getenv('JWT_ALGORITHM'),
         )
 

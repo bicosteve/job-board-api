@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import cast
 
-
+from flask import make_response, jsonify
 from flask_restful import Resource, request
 from marshmallow import ValidationError
 from jwt import ExpiredSignatureError, InvalidTokenError
@@ -69,7 +69,15 @@ class LoginAdminController(Resource):
 
             admin = AdminService.get_admin_user(
                 data["email"], data["password"])
-            return {"data": admin}, 200
+
+            if not isinstance(admin, dict):
+                Logger.warn(f"Problem with getting admin user")
+                return {"error": "The problem with getting user"}, 500
+
+            response = make_response(jsonify(admin), 200)
+            response.headers['Authorization'] = f'Bearer {str(admin['token'])}'
+
+            return response
         except ValidationError as err:
             Logger.warn(f"Validation failed: {err.messages}")
             return {"error": err.messages}, 400

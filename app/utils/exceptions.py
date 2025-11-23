@@ -32,3 +32,7 @@ class GenericGenerateResetTokenError(Exception):
 
 class GenericPasswordHashError(Exception):
     '''Raised when there is a problem hashing password'''
+
+
+class GenericGenerateAuthTokenError(Exception):
+    '''Raised when there is a problem generating auth token'''

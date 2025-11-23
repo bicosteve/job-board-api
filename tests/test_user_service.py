@@ -85,7 +85,7 @@ class TestUserService(unittest.TestCase):
         mock_check_password.assert_called_once_with(
             self.password, self.hash)
 
-    @patch("app.services.user_service.Loggger.warn")
+    @patch("app.services.user_service.Logger.warn")
     @patch(
         "app.services.user_service.UserRepository.find_user_by_mail", return_value=None
     )
@@ -98,7 +98,7 @@ class TestUserService(unittest.TestCase):
         mock_warn.assert_called_once_with(
             f"user not found for email {self.email}")
 
-    @patch("app.services.user_service.Loggger.warn")
+    @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
     def test_get_user_not_verified(self, mock_user, mock_warn):
         user_data = {
@@ -119,7 +119,7 @@ class TestUserService(unittest.TestCase):
         mock_warn.assert_called_once_with(
             f"user not verified for {self.email}")
 
-    @patch("app.services.user_service.Loggger.warn")
+    @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.Security.check_password", return_value=False)
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
     def test_get_user_invalid_password(
@@ -144,7 +144,7 @@ class TestUserService(unittest.TestCase):
             f"Invalid password for user {self.email}")
         mock_check_password.assert_called_once_with("wrongpass", self.hash)
 
-    @patch("app.services.user_service.Loggger.warn")
+    @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.Security.hash_password")
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
     @patch("app.services.user_service.UserRepository.add_user")
@@ -167,7 +167,7 @@ class TestUserService(unittest.TestCase):
         mock_warn.assert_not_called()
         self.assertEqual(result, {"rows_affected": 1})
 
-    @patch("app.services.user_service.Loggger.warn")
+    @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
     def test_register_user_exists(self, mock_find_user, mock_warn):
         """Test register user already existing"""
@@ -179,7 +179,7 @@ class TestUserService(unittest.TestCase):
         mock_warn.assert_called_once_with(
             f"User already exist for email {self.email}")
 
-    @patch("app.services.user_service.UserCache.store_verification_code")
+    @patch("app.services.user_service.BaseCache.store_verification_code")
     def test_store_user_verification_code(self, mock_store_code):
         """Should return True when code is successfully stored in cache"""
         # Arrange
@@ -192,7 +192,7 @@ class TestUserService(unittest.TestCase):
         mock_store_code.assert_called_once_with(self.email, self.code)
         self.assertTrue(result)
 
-    @patch("app.services.user_service.UserCache.store_verification_code")
+    @patch("app.services.user_service.BaseCache.store_verification_code")
     def test_store_user_verification_code_returns_false(self, mock_store_code):
         """Should return False if verification code is not stored in cache"""
 
@@ -209,7 +209,7 @@ class TestUserService(unittest.TestCase):
     @patch(
         "app.services.user_service.UserRepository.update_user_status", return_value=1
     )
-    @patch("app.services.user_service.UserCache.verify_code", return_value=True)
+    @patch("app.services.user_service.BaseCache.verify_code", return_value=True)
     def test_verify_account_success_with_db_update(
         self, mock_verify_code, mock_update_status
     ):
@@ -220,13 +220,13 @@ class TestUserService(unittest.TestCase):
         result = UserService.verify_account(self.email, self.code)
 
         mock_verify_code.assert_called_once_with(self.email, self.code)
-        mock_update_status.assert_called_once_with(self.email)
+        mock_update_status.assert_called_once_with(self.email, 1)
         self.assertTrue(result)
 
     @patch(
         "app.services.user_service.UserRepository.update_user_status", return_value=0
     )
-    @patch("app.services.user_service.UserCache.verify_code", return_value=False)
+    @patch("app.services.user_service.BaseCache.verify_code", return_value=False)
     def test_verify_account_db_update_fails(self, mock_verify_code, mock_update_status):
         """Should return False when cache fails and if DB update is skipped"""
         result = UserService.verify_account(self.email, self.code)
@@ -235,8 +235,8 @@ class TestUserService(unittest.TestCase):
         mock_update_status.assert_not_called()
         self.assertFalse(result)
 
-    @patch("app.services.user_service.Loggger.exception")
-    @patch("app.services.user_service.UserCache.verify_code")
+    @patch("app.services.user_service.Logger.exception")
+    @patch("app.services.user_service.BaseCache.verify_code")
     def test_verify_account_raises_generic_db_error(
         self, mock_verify_code, mock_logger
     ):
@@ -250,7 +250,7 @@ class TestUserService(unittest.TestCase):
         mock_logger.assert_called_once()
 
     @patch("app.services.user_service.Helpers.generate_reset_token")
-    @patch("app.services.user_service.UserCache.hold_reset_token", return_value=True)
+    @patch("app.services.user_service.BaseCache.hold_reset_token", return_value=True)
     @patch("app.services.user_service.UserRepository.store_reset_token", return_value=1)
     def test_store_reset_token_success(
         self, mock_repository, mock_user_cache, mock_generate_reset_token
@@ -285,7 +285,7 @@ class TestUserService(unittest.TestCase):
         ) as mock_compare, patch(
             "app.services.user_service.UserRepository.get_reset_token"
         ) as mock_repo, patch(
-            "app.services.user_service.UserCache.retrieve_reset_token"
+            "app.services.user_service.BaseCache.retrieve_reset_token"
         ) as mock_cache:
             # Arrange
             mock_cache.return_value = token
@@ -312,7 +312,7 @@ class TestUserService(unittest.TestCase):
         ) as mock_compare, patch(
             "app.services.user_service.UserRepository.get_reset_token"
         ) as mock_repo, patch(
-            "app.services.user_service.UserCache.retrieve_reset_token"
+            "app.services.user_service.BaseCache.retrieve_reset_token"
         ) as mock_cache:
             # Arrange
             mock_cache.return_value = None
