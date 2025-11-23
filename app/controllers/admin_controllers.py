@@ -53,9 +53,9 @@ class RegisterAdminController(Resource):
         except ValidationError as e:
             return {"error": str(e.messages)}, 400
         except UserExistError as e:
-            return {"error": str(e)}, 409
+            return {"error": f"{str(e)}"}, 409
         except GenericDatabaseError as e:
-            return {"error": str(e)}, 500
+            return {"error": f'{str(e)}'}, 500
 
 
 class LoginAdminController(Resource):
@@ -114,8 +114,8 @@ class VerifyAdminAccountController(Resource):
                 return {"error": "An error occurred during verification"}, 500
 
             return {"msg": "account verified"}, 200
-        except ValidationError as err:
-            Logger.warn(f"Validation failed {err.messages}")
-            return {"err": str(err.messages)}, 400
+        except (ValidationError, ValueError, TypeError) as err:
+            Logger.warn(f"Validation failed {err}")
+            return {"err": str(err)}, 400
         except GenericDatabaseError as e:
             return {"db_error": str(e)}, 500
