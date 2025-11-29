@@ -18,7 +18,8 @@ from .controllers.admin_controllers import (
     VerifyAdminAccountController
 )
 from .controllers.job_controllers import (
-    PostJobController
+    PostJobController,
+    JobsListController
 )
 
 
@@ -42,3 +43,7 @@ def register_routes(app):
     api.add_resource(LoginAdminController, f"{base}/admin/login")
     api.add_resource(VerifyAdminAccountController, f"{base}/admin/verify")
     api.add_resource(PostJobController, f"{base}/admin/jobs")
+
+    # Public Routes
+    api.add_resource(JobsListController, f"{base}/public/jobs")
+    # api.add_resource(JobsListController, f"{base}/public/jobs/{1}")
