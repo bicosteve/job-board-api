@@ -1,6 +1,6 @@
 import os
 
-from dotenv import load_dotenv
+
 from flask_restful import Api
 
 from .controllers.user_controllers import (
@@ -12,14 +12,14 @@ from .controllers.user_controllers import (
     ResetUserPasswordController,
     CheckAppHealthController
 )
-
 from .controllers.admin_controllers import (
     RegisterAdminController,
     LoginAdminController,
     VerifyAdminAccountController
 )
-
-load_dotenv()
+from .controllers.job_controllers import (
+    PostJobController
+)
 
 
 def register_routes(app):
@@ -41,3 +41,4 @@ def register_routes(app):
     api.add_resource(RegisterAdminController, f"{base}/admin/register")
     api.add_resource(LoginAdminController, f"{base}/admin/login")
     api.add_resource(VerifyAdminAccountController, f"{base}/admin/verify")
+    api.add_resource(PostJobController, f"{base}/admin/jobs")

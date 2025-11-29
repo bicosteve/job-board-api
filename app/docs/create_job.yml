@@ -1,0 +1,76 @@
+tags:
+  - Jobs
+operationId: createJob
+description: Creates a new job posting and returns the created job details.
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Backend Engineer
+        details:
+          type: object
+          properties:
+            dscription:
+              type: string
+              example: Design and maintain scalable job board APIs.
+            requirements:
+              type: string
+              example: Python, Redis, SQL, CI/CD pipelines
+            location:
+              type: string
+              example: Nairobi
+            employment_type:
+              type: string
+              enum: [full time, part Time, contract, internship]
+              example: Full time
+            salary_range:
+              type: string
+              example: KES 150,000 - 200,000
+            deadline:
+              type: string
+              format: date
+              example: 2025-12-15
+            status:
+              type: string
+              enum: [open, closed, draft]
+              example: open
+            company_name:
+              type: string
+              example: Example Limited
+            application_url:
+              type: string
+              format: uri
+              example: https://company.jobs/apply/42
+          required:
+            - dscription
+            - location
+            - employment_type
+            - company_name
+      required:
+        - admin_id
+        - title
+        - details
+responses:
+  201:
+    description: Job created successfully
+  400:
+    description: Validation error
+  500:
+    description: Internal server error
