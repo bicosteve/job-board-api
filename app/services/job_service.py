@@ -1,3 +1,5 @@
+from typing import Any
+
 from ..repositories.jobs_repository import JobRepository
 from ..repositories.base_cache import BaseCache
 from ..utils.exceptions import (
@@ -45,3 +47,36 @@ class JobService:
         except Exception as e:
             Logger.warn(f"Job {data} was not added because of {str(e)}")
             raise GenericDatabaseError(f"Error because of {str(e)}")
+
+    @staticmethod
+    def fetch_jobs(page: int, limit: int) -> dict:
+        try:
+            offset = (page - 1) * limit
+            jobs = JobRepository.get_jobs(limit, offset)
+
+            return {
+                'page': page,
+                'limit': limit,
+                'count': len(jobs),
+                'jobs': jobs
+            }
+        except Exception as e:
+            Logger.warn(f'Error occurred {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')
+
+    @staticmethod
+    def update_job(job_id: int, admin_id: int, data: dict[str, Any]) -> dict:
+        try:
+
+            affected_row = JobRepository.update_job(job_id, admin_id, data)
+
+            if affected_row == 0:
+                raise GenericDatabaseError(
+                    {'msg': f'No job found with id {job_id}'})
+
+            job = JobRepository.get_job(job_id)
+
+            return job
+        except Exception as e:
+            Logger.warn(f'An error occurred {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')

@@ -45,3 +45,16 @@ class JobSchema(Schema):
     details = fields.Nested(JobDetailsSchema)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
+
+
+class PaginationSchema(Schema):
+    page = fields.Int(
+        missing=1,
+        validate=validate.Range(min=1),
+        error_messages={'invalid': 'Page must be positive integer'}
+    )
+    limit = fields.Int(
+        missing=10,
+        validate=validate.Range(min=1, max=100),
+        error_messages={'invalid': 'Limit must be between 1 and 100'}
+    )
