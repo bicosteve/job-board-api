@@ -1,15 +1,15 @@
-CREATE TABLE IF NOT EXISTS profile(
-    profile_id INT AUTO_INCREMENT PRIMARY KEY,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    cv_url VARCHAR(255),
-    user_id INT NOT NULL, 
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `profile`(
+    `profile_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `first_name` VARCHAR(100) NOT NULL,
+    `last_name` VARCHAR(100) NOT NULL,
+    `cv_url` VARCHAR(255),
+    `user_id` INT NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `modified_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_profile_id ON profile(profile_id);
+CREATE INDEX `idx_profile_id` ON `profile`(`profile_id`);
 
 
 

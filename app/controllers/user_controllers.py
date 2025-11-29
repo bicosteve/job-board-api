@@ -126,7 +126,6 @@ class LoginUserController(Resource):
                 200,
             )
             Logger.info(f"Login success {response}")
-            response.headers["Authorization"] = f"Bearer {user['token']}"
             return response
         except GenericDatabaseError as e:
             Logger.error(f"DB error during login {str(e)}")
