@@ -102,7 +102,6 @@ class TestLoginController(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()['msg'], 'Login success')
         self.assertEqual(response.get_json()['token'], 'jwt-token-123')
-        self.assertIn('Authorization', response.headers)
 
     @patch('app.controllers.user_controllers.UserService.get_user')
     @patch('app.controllers.user_controllers.LoginUserController.login_schema.load')

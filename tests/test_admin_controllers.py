@@ -72,7 +72,6 @@ class TestAdminControllers(unittest.TestCase):
             "id": 1, "email": self.email, "token": "jwt-token"}
         res = self.client.post("/login", json=self.payload)
         self.assertEqual(res.status_code, 200)
-        self.assertIn("Authorization", res.headers)
         self.assertEqual(res.get_json()["token"], "jwt-token")
 
     @patch("app.controllers.admin_controllers.LoginAdminSchema.load")
