@@ -16,11 +16,16 @@ class AdminRepository:
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = """
-                    SELECT a.admin_id, a.email, a.username, a.hash,
-                    a.created_at, aset.is_deactivated
+                    SELECT
+                        a.admin_id,
+                        a.email,
+                        a.username,
+                        a.hash,
+                        a.created_at,
+                        aset.is_deactivated
                     FROM admins a
                     LEFT JOIN admin_setting aset
-                    ON a.admin_id = aset.admin_id
+                        ON a.admin_id = aset.admin_id
                     WHERE a.email = %s
                     LIMIT 1
                 """
