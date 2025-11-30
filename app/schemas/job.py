@@ -49,12 +49,12 @@ class JobSchema(Schema):
 
 class PaginationSchema(Schema):
     page = fields.Int(
-        missing=1,
+        load_default=1,
         validate=validate.Range(min=1),
         error_messages={'invalid': 'Page must be positive integer'}
     )
     limit = fields.Int(
-        missing=10,
+        load_default=10,
         validate=validate.Range(min=1, max=100),
         error_messages={'invalid': 'Limit must be between 1 and 100'}
     )
