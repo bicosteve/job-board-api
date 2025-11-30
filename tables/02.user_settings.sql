@@ -1,10 +1,10 @@
-CREATE TABLE IF NOT EXISTS user_setting(
-    setting_id INT PRIMARY KEY AUTO_INCREMENT,
-    is_deactivated INT NOT NULL DEFAULT 0,
-    user_id INT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, 
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES user(user_id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS `user_setting`(
+    `setting_id` INT PRIMARY KEY AUTO_INCREMENT,
+    `is_deactivated` INT NOT NULL DEFAULT 0,
+    `user_id` INT NOT NULL,
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
 );
 
-CREATE INDEX setting_idx ON user_setting(setting_id);
+CREATE INDEX `setting_idx` ON `user_setting``(setting_id`);

@@ -56,7 +56,7 @@ class Security:
         return token
 
     @staticmethod
-    def decode_jwt_token(token):
+    def decode_jwt_token(token: str):
         """Decodes jwt token and returns profile object"""
         secret = os.getenv('JWT_SECRET')
         if secret is None:

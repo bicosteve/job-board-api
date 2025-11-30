@@ -1,0 +1,88 @@
+tags:
+  - Jobs
+operationId: getJob
+description: |
+  Retrieves a job's details based on the `job_id` provided in the path parameter.
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: path
+    name: job_id
+    required: true
+    type: integer
+    description: Unique identifier of the job to retrieve.
+    example: 42
+responses:
+  200:
+    description: Successful response with job details.
+    schema:
+      type: object
+      properties:
+        job_id:
+          type: integer
+          example: 42
+        admin_id:
+          type: integer
+          example: 3
+        title:
+          type: string
+          example: "Senior Backend Engineer"
+        description:
+          type: string
+          example: "Work on scalable APIs and microservices."
+        requirements:
+          type: string
+          example: "Python, Flask, SQL, CI/CD"
+        location:
+          type: string
+          example: "Nairobi"
+        employment_type:
+          type: string
+          example: "Full-time"
+        salary_range:
+          type: string
+          example: "KSh 150,000 - 200,000"
+        company_name:
+          type: string
+          example: "Shark Limited"
+        application_url:
+          type: string
+          example: "https://shark.jobs/apply/42"
+        deadline:
+          type: string
+          example: "2026-01-15"
+        status:
+          type: string
+          example: "Open"
+        created_at:
+          type: string
+          example: "2025-10-23 10:23:45"
+        updated_at:
+          type: string
+          example: "2025-11-01 09:15:00"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  404:
+    description: Job not found.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Job not found"
+  500:
+    description: Unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Internal server error"
