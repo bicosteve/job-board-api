@@ -1,0 +1,65 @@
+tags:
+  - Jobs
+operationId: getJobs
+description: Retrieves a paginated list of jobs. This endpoint is public and does not require authentication.
+produces:
+  - application/json
+parameters:
+  - in: query
+    name: page
+    required: true
+    type: integer
+    description: Page number (must be >= 1).
+    example: 1
+  - in: query
+    name: limit
+    required: true
+    type: integer
+    description: Number of jobs per page (e.g., 10).
+    example: 10
+responses:
+  200:
+    description: Jobs retrieved successfully
+    schema:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        count:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 125
+        total_pages:
+          type: integer
+          example: 13
+        jobs:
+          type: array
+          items:
+            type: object
+            properties:
+              job_id:
+                type: integer
+                example: 42
+              title:
+                type: string
+                example: Backend Engineer
+              company_name:
+                type: string
+                example: Shade Limited
+              location:
+                type: string
+                example: Nairobi
+              status:
+                type: string
+                enum: [open, closed, draft]
+                example: open
+  400:
+    description: Validation error
+  500:
+    description: Internal server error

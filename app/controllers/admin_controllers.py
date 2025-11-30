@@ -1,17 +1,14 @@
-from datetime import datetime
 from typing import cast
 
 from flask import make_response, jsonify
 from flask_restful import Resource, request
 from marshmallow import ValidationError
-from jwt import ExpiredSignatureError, InvalidTokenError
 from flasgger import swag_from
 
 from ..schemas.admin import (
     RegisterAdminSchema, LoginAdminSchema,
     VerifyAdminSchema
 )
-from ..utils.security import Security
 from ..utils.helpers import Helpers
 from ..utils.logger import Logger
 from ..services.admin_service import AdminService
@@ -75,7 +72,6 @@ class LoginAdminController(Resource):
                 return {"error": "The problem with getting user"}, 500
 
             response = make_response(jsonify(admin), 200)
-            response.headers['Authorization'] = f'Bearer {str(admin['token'])}'
 
             return response
         except ValidationError as err:
