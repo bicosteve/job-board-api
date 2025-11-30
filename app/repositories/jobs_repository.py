@@ -24,39 +24,40 @@ def serialize_job(row: dict) -> dict:
 
 
 def convert_employment_type(employment: str) -> str:
-    employment_type = None
 
-    if employment not in VALID_EMPLOYMENT_TYPES:
+    mapping = {
+        'full time': '1',
+        'part time': '2',
+        'contract': '3',
+        'internship': '4'
+    }
+
+    key = employment.lower().strip()
+    if key not in VALID_EMPLOYMENT_TYPES:
         raise ValueError(f'Employment type {employment} not allowed')
 
-    if employment.lower() == 'full time':
-        employment_type = '1'
-    elif employment.lower() == 'part time':
-        employment_type = '2'
-    elif employment.lower() == 'contract':
-        employment_type = '3'
-    elif employment.lower() == 'internship':
-        employment_type = '4'
-    else:
-        employment_type = '1'
-    return employment_type
+    if key not in mapping:
+        raise ValueError(f'Employment type {employment} not allowed')
+
+    return mapping[key]
 
 
 def convert_job_status(job_status: str) -> str:
-    status = None
+    mapping = {
+        'open': '5',
+        'closed': '6',
+        'draft': '7'
+    }
 
-    if job_status not in VALID_JOB_STATUSES:
+    key = job_status.lower().strip()
+
+    if key not in VALID_JOB_STATUSES:
         raise ValueError(f'Job status {job_status} not allowed')
 
-    if job_status.lower() == 'open':
-        status = '5'
-    elif job_status.lower() == 'closed':
-        status = '6'
-    elif job_status.lower() == 'draft':
-        status = '7'
-    else:
-        status = '5'
-    return status
+    if key not in mapping:
+        raise ValueError(f'Job status {job_status} not allowed')
+
+    return mapping[key]
 
 
 class JobRepository:
@@ -133,7 +134,7 @@ class JobRepository:
                 row = cursor.fetchone()
                 if not row:
                     return {}
-                return row
+                return serialize_job(row)
         except pymysql.MySQLError as e:
             Logger.error(f'Database error: {str(e)}')
             raise GenericDatabaseError(f'{str(e)}')
@@ -150,15 +151,22 @@ class JobRepository:
                 # 1. Filter only allowed fields
                 valid_data = {k: v for k,
                               v in data.items() if k in ALLOWED_JOB_FIELDS}
-
                 if not valid_data:
                     raise ValueError('No valid fields provided for updates')
 
-                # 2. Build dynamic SET clause for UPDATE
+                # 2. Normalize special fields before query
+                if "employment_type" in valid_data:
+                    valid_data['employment_type'] = convert_employment_type(
+                        valid_data['employment_type'])
+                if 'status' in valid_data:
+                    valid_data['status'] = convert_job_status(
+                        valid_data['status'])
+
+                # 3. Build dynamic SET clause for UPDATE
                 set_clauses = [f'`{key}` = %s' for key in valid_data.keys()]
                 values = list(valid_data.values())
 
-                # 3. Set the query
+                # 4. Set the query
                 query = f'''
                 UPDATE `jobs`
                 SET {', '.join(set_clauses)}, `updated_at` = CURRENT_TIMESTAMP
@@ -166,15 +174,15 @@ class JobRepository:
                 AND `admin_id` = %s
                 '''.strip()
 
-                # 4. Add the job_id and admin_id to values list
+                # 5. Add the job_id and admin_id to values list
                 values.append(job_id)
                 values.append(admin_id)
 
-                # 5. Execute the query & commit
+                # 6. Execute the query & commit
                 cursor.execute(query, tuple(values))
                 conn.commit()
 
-                # 6. Log and return bool
+                # 7. Log and return bool
                 Logger.info(f'Job {job_id} updated sucessfully with {values}')
                 return cursor.rowcount > 0
         except pymysql.MySQLError as e:

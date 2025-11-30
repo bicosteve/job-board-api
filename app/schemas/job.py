@@ -15,7 +15,7 @@ class JobDetailsSchema(Schema):
     employment_type = fields.String(
         required=True,
         validate=validate.OneOf(
-            ['full time', 'part time', 'contract', 'internship'])
+            ['Full time', 'Part time', 'Contract', 'Internship'])
     )
     salary_range = fields.String(
         allow_none=True,
@@ -25,7 +25,7 @@ class JobDetailsSchema(Schema):
     deadline = fields.Date(allow_none=True)
     status = fields.String(
         required=True,
-        validate=validate.OneOf(['open', 'closed', 'draft'])
+        validate=validate.OneOf(['Open', 'Closed', 'Draft'])
     )
     company_name = fields.String(
         required=True,
@@ -58,3 +58,47 @@ class PaginationSchema(Schema):
         validate=validate.Range(min=1, max=100),
         error_messages={'invalid': 'Limit must be between 1 and 100'}
     )
+
+
+class JobIdSchema(Schema):
+    job_id = fields.Int(required=True)
+
+
+class JobUpdateSchema(Schema):
+    title = fields.String(
+        required=True,
+        validate=[validate.Length(min=1, max=100)],
+        error_messages={"length_error": "Must be between 1 and 100 characters"}
+    )
+    description = fields.String(
+        required=True,
+        validate=[validate.Length(min=3, max=1000)],
+        error_messages={"field": "This field is required"})
+    requirements = fields.String(allow_none=True)
+    location = fields.String(
+        required=True,
+        validate=[validate.Length(min=3, max=100)],
+        error_messages={"length_error": "Must be between 3 and 100 characters"}
+    )
+    employment_type = fields.String(
+        required=True,
+        validate=validate.OneOf(
+            ['Full time', 'Part time', 'Contract', 'Internship'])
+    )
+    salary_range = fields.String(
+        allow_none=True,
+        validate=[validate.Length(min=3, max=100)],
+        error_messages={"length_error": "Must be between 3 and 100 characters"}
+    )
+    deadline = fields.Date(allow_none=True)
+    status = fields.String(
+        required=True,
+        validate=validate.OneOf(['Open', 'Closed', 'Draft'])
+    )
+    company_name = fields.String(
+        required=True,
+        validate=[validate.Length(min=3, max=100)],
+        error_messages={"length_error": "Must be between 3 and 100 characters"}
+
+    )
+    application_url = fields.Url(allow_none=True)
