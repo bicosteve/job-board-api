@@ -23,22 +23,28 @@ from .controllers.job_controllers import (
     JobObjectController,
     ModifyJobObjectController
 )
+from .controllers.education_controllers import (
+    EducationController
+)
 
 
 def register_routes(app):
     base = app.config['API_BASE']
     api = Api(app)
 
-    # User Routes
+    # Auth Routes
     api.add_resource(CheckAppHealthController, f"{base}/health/check")
     api.add_resource(RegisterUserController, f"{base}/profile/register")
     api.add_resource(VerifyUserAccountController, f"{base}/profile/verify")
     api.add_resource(LoginUserController, f"{base}/profile/login")
-    api.add_resource(UserProfileController, f"{base}/profile/me")
     api.add_resource(RequestUserPasswordResetController,
                      f"{base}/profile/request-reset")
     api.add_resource(ResetUserPasswordController,
                      f"{base}/profile/reset-password")
+
+    # User Routes
+    api.add_resource(UserProfileController, f"{base}/profile/me")
+    api.add_resource(EducationController, f"{base}/profile/education")
 
     # Admin Routes
     api.add_resource(RegisterAdminController, f"{base}/admin/register")
