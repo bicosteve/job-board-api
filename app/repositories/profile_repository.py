@@ -81,7 +81,6 @@ class ProfileRepository:
                     "end_date": str(row.get('end_date')),
                     "description": row.get('description'),
                 }
-
         except pymysql.MySQLError as e:
             Logger.warn(f'{str(e)}')
             raise GenericDatabaseError(f'{str(e)}')
