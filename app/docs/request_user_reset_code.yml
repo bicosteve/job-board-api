@@ -1,8 +1,7 @@
 tags:
-  - User Authentication
-# summary: User Verify Account
-operationId: verifyAccount
-description: Verify user's account and change status to allow login.
+  - User
+operationId: requestResetCode
+description: User request password reset code & token.
 consumes:
   - application/json
 produces:
@@ -17,12 +16,8 @@ parameters:
         email:
           type: string
           example: johndoe@example.com
-        verification_code:
-          type: string
-          example: 123456
       required:
         - email
-        - verification_code
 responses:
   200:
     description: Account verified successfully
