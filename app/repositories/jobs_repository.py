@@ -69,7 +69,7 @@ class JobRepository:
             with conn.cursor(DictCursor) as cursor:
 
                 query = '''
-                INSERT INTO `jobs`(`admin_id`,`title`,`description`,`requirements`,`location`,`employment_type`,`salary_range`,`company_name`,`application_url`,`deadline`,`status`)
+                INSERT INTO jobs(admin_id,title,description,requirements,location, employment_type,salary_range,company_name,application_url,deadline,status)
                 VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 '''.strip()
 
@@ -168,10 +168,10 @@ class JobRepository:
 
                 # 4. Set the query
                 query = f'''
-                UPDATE `jobs`
-                SET {', '.join(set_clauses)}, `updated_at` = CURRENT_TIMESTAMP
-                WHERE `job_id` = %s
-                AND `admin_id` = %s
+                UPDATE jobs
+                SET {', '.join(set_clauses)}, updated_at = CURRENT_TIMESTAMP
+                WHERE job_id = %s
+                AND admin_id = %s
                 '''.strip()
 
                 # 5. Add the job_id and admin_id to values list
