@@ -44,7 +44,7 @@ class ApplicationRepository:
 
                 conn.commit()
                 Logger.info(f'Application for {user_id} success')
-                return cursor.rowcount
+                return cursor.rownumber
         except pymysql.MySQLError as e:
             Logger.warn(f'Pymysql error {str(e)} occurred')
             raise GenericDatabaseError(str(e))
@@ -129,7 +129,7 @@ class ApplicationRepository:
             raise GenericDatabaseError(f'{str(e)}')
 
     @staticmethod
-    def update_application(application_id: int, admin_id, status: int) -> bool:
+    def update_application(application_id: int, admin_id: int, status: int) -> bool:
         conn = None
         try:
             conn = DB.get_db()
