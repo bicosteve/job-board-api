@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from ..repositories.admin_repository import AdminRepository
 from ..utils.security import Security
 from ..utils.exceptions import (
@@ -7,11 +5,9 @@ from ..utils.exceptions import (
     UserExistError,
     GenericDatabaseError,
     InvalidLoginAttemptError,
-    GenericPasswordHashError,
     UserDoesNotExistError,
     GenericRedisError
 )
-from ..utils.helpers import Helpers
 from ..utils.logger import Logger
 from ..repositories.base_cache import BaseCache
 

@@ -48,7 +48,7 @@ class ProfileCreateController(Resource):
 
             return {'msg': 'Profile created'}, 201
         except ValidationError as e:
-            return {'err'f'{(str(e.messages))}'}, 400
+            return {'error': f'{(str(e.messages))}'}, 400
         except Exception as e:
             return {'error': str(e)}, 400
 

@@ -1,13 +1,10 @@
 from typing import Any
 
 from ..repositories.jobs_repository import JobRepository
-from ..repositories.base_cache import BaseCache
 from ..utils.exceptions import (
     GenericDatabaseError,
-    InvalidLoginAttemptError,
-    GenericRedisError
+    InvalidLoginAttemptError
 )
-from ..utils.helpers import Helpers
 from ..utils.logger import Logger
 from ..utils.security import Security
 

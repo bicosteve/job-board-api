@@ -58,7 +58,7 @@ class TestProfileControllers(unittest.TestCase):
         )
 
         self.assertEqual(response.status_code, 400)
-        self.assertIn("err", response.get_json())
+        self.assertIn("error", response.get_json())
 
     @patch("app.controllers.profile_controllers.ProfileService.create_profile")
     @patch("app.controllers.profile_controllers.ProfileSchema.load")
