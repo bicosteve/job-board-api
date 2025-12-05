@@ -50,16 +50,6 @@ class JobApplicationSchema(Schema):
 
 
 class JobUpdateSchema(Schema):
-    job_id = fields.Int(
-        required=True,
-        validate=[validate.Range(min=1)],
-        error_messages={
-            'required': 'This field is required',
-            'invalid': 'Must be an integer',
-            'min': 'Must be 1 or above'
-        }
-
-    )
     status = fields.Int(
         required=True,
         allvalidate=validate.OneOf([1, 2, 3, 4]),

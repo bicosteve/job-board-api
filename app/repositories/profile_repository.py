@@ -72,7 +72,7 @@ class ProfileRepository:
 
                 return {
                     "first_name": row.get('first_name'),
-                    "last_name": row.get('first_name'),
+                    "last_name": row.get('last_name'),
                     "cv_url": row.get('cv_url', ''),
                     "level": row.get('level'),
                     "institution": row.get('institution'),

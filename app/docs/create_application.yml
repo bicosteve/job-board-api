@@ -1,0 +1,84 @@
+tags:
+  - Job Applications
+operationId: createApplication
+description: |
+  Creates a new job application for the authenticated user.
+  The request body must contain a valid `job_id` and `status`, with optional `cover_letter` and `resume_url`.
+  Returns a success message on creation.
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: "Authorization"
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        job_id:
+          type: integer
+          minimum: 1
+          example: 42
+          description: Must be an integer greater than or equal to 1.
+        status:
+          type: integer
+          enum: [1, 2, 3, 4]
+          example: 1
+          description: |
+            Status codes:
+            - 1: Pending
+            - 2: Under Review
+            - 3: Accepted
+            - 4: Rejected
+        cover_letter:
+          type: string
+          example: "I am passionate about backend engineering and API design."
+          description: Optional cover letter text.
+        resume_url:
+          type: string
+          format: uri
+          example: "https://example.com/resume.pdf"
+          description: Optional resume URL, can be null.
+      required:
+        - job_id
+        - status
+responses:
+  201:
+    description: Application created successfully.
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "success"
+  400:
+    description: Validation error or bad request.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Bad request"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  500:
+    description: Application creation failed or unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "application was not successfull"

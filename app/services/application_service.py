@@ -10,7 +10,7 @@ from ..repositories.applications_repository import ApplicationRepository
 class ApplicationService:
 
     @staticmethod
-    def make_application(token: str, data: dict[str, str]) -> bool:
+    def make_application(token: str, data: dict) -> bool:
         try:
             decoded = Security.decode_jwt_token(token)
             if not decoded:

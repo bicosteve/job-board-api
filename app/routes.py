@@ -31,6 +31,14 @@ from .controllers.profile_controllers import (
     ProfileGetController
 )
 
+from .controllers.application_controllers import (
+    ApplicationsListController,
+    ApplicationsCreateController,
+    UsersJobApplicationsController,
+    UsersJobApplicationController,
+    ApplicationUpdateController
+)
+
 
 def register_routes(app):
     base = app.config['API_BASE']
@@ -68,3 +76,15 @@ def register_routes(app):
     api.add_resource(JobsListController, f"{base}/public/jobs")
     api.add_resource(JobObjectController, f"{base}/public/jobs/<int:job_id>")
     api.add_resource(PostJobController, f"{base}/admin/jobs/create")
+
+    # Job Application Routes
+    api.add_resource(ApplicationsCreateController,
+                     f"{base}/applications/job/create")
+    api.add_resource(ApplicationsListController,
+                     f"{base}/applications/job/list")
+    api.add_resource(UsersJobApplicationsController,
+                     f"{base}/applications/user/list")
+    api.add_resource(UsersJobApplicationController,
+                     f"{base}/applications/job/<int:application_id>")
+    api.add_resource(ApplicationUpdateController,
+                     f"{base}/applications/job/update/<int:application_id>")

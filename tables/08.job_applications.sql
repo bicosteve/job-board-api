@@ -2,7 +2,6 @@ CREATE TABLE `job_applications` (
     `application_id` INT AUTO_INCREMENT PRIMARY KEY,
     `user_id` INT NOT NULL,
     `job_id` INT NOT NULL,
-    -- 1=Pending, 2=Reviewed, 3=Accepted, 4=Rejected
     `status` TINYINT NOT NULL DEFAULT 1,
     `cover_letter` TEXT,
     `resume_url` VARCHAR(255),
