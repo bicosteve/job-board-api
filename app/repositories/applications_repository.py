@@ -42,12 +42,6 @@ class ApplicationRepository:
                 cursor.execute(
                     query, (user_id, job_id, status, c_letter, resume_url))
                 conn.commit()
-
-                Logger.info(f'Application for {user_id} success')
-                Logger.info(f'Rows affected {cursor.rowcount}')
-                Logger.info(f'Current iteration row {cursor.rownumber}')
-                Logger.info(f'Last id of inserted row {cursor.lastrowid}')
-
                 return cursor.lastrowid
         except pymysql.MySQLError as e:
             Logger.warn(f'Pymysql error {str(e)} occurred')
