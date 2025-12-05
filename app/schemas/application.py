@@ -4,7 +4,7 @@ from marshmallow import Schema, fields, validate
 class JobPaginaNationSchema(Schema):
     job_id = fields.Int(
         required=True,
-        default=1,
+        load_default=1,
         validate=[validate.Range(min=1)],
         error_messages={
             'required': 'This field is required',
@@ -38,7 +38,7 @@ class JobApplicationSchema(Schema):
     )
     status = fields.Int(
         required=True,
-        allvalidate=validate.OneOf([1, 2, 3, 4]),
+        validate=validate.OneOf([1, 2, 3, 4]),
         error_messages={
             'required': 'This field is required',
             'invalid': 'Must be an integer',
