@@ -1,0 +1,86 @@
+tags:
+  - Job Applications
+operationId: getUserApplication
+description: |
+  Retrieves a specific job application for the authenticated user based on the `application_id` provided in the path parameter.
+  Returns the application details if found.
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: "Authorization"
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: path
+    name: application_id
+    required: true
+    type: integer
+    description: Unique identifier of the application to retrieve. Must be 1 or above.
+    example: 101
+responses:
+  200:
+    description: Application retrieved successfully.
+    schema:
+      type: object
+      properties:
+        application_id:
+          type: integer
+          example: 101
+        job_id:
+          type: integer
+          example: 42
+        status:
+          type: integer
+          enum: [1, 2, 3, 4]
+          example: 2
+          description: |
+            Status codes:
+            - 1: Pending
+            - 2: Under Review
+            - 3: Accepted
+            - 4: Rejected
+        created_at:
+          type: string
+          example: "2025-10-23 10:23:45"
+        updated_at:
+          type: string
+          example: "2025-11-01 09:15:00"
+  400:
+    description: Invalid request or unexpected error.
+    schema:
+      type: object
+      properties:
+        errors:
+          type: string
+          example: "error with application_id"
+        error:
+          type: string
+          example: "Invalid token format"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  404:
+    description: Application not found.
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "No application found"
+  500:
+    description: Unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Internal server error"

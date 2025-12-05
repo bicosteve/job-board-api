@@ -41,10 +41,14 @@ class ApplicationRepository:
                 Logger.info(f'Creating job applicationf or {user_id}')
                 cursor.execute(
                     query, (user_id, job_id, status, c_letter, resume_url))
-
                 conn.commit()
+
                 Logger.info(f'Application for {user_id} success')
-                return cursor.rownumber
+                Logger.info(f'Rows affected {cursor.rowcount}')
+                Logger.info(f'Current iteration row {cursor.rownumber}')
+                Logger.info(f'Last id of inserted row {cursor.lastrowid}')
+
+                return cursor.lastrowid
         except pymysql.MySQLError as e:
             Logger.warn(f'Pymysql error {str(e)} occurred')
             raise GenericDatabaseError(str(e))
@@ -56,12 +60,15 @@ class ApplicationRepository:
     def get_jobs_applications(job_id: int, limit: int, offset: int) -> list:
         conn = None
         try:
+            Logger.info(f'Job id -> {job_id}')
+            Logger.info(f'Job limit -> {limit}')
+            Logger.info(f'Job offset -> {offset}')
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = '''
                 SELECT * FROM job_applications
-                ORDER BY applications_id
                 WHERE job_id = %s
+                ORDER BY created_at
                 LIMIT %s OFFSET %s
                 '''.strip()
 

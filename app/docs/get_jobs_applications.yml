@@ -1,0 +1,95 @@
+tags:
+  - Job Applications
+operationId: listJobApplications
+description: |
+  Retrieves a paginated list of job applications for a specific job.
+  Requires a valid `job_id` and supports pagination with `page` and `limit` query parameters.
+produces:
+  - application/json
+# security:
+#   - BearerAuth: []
+parameters:
+  # - in: header
+  #   name: "Authorization"
+  #   required: true
+  #   type: string
+  #   description: Bearer JWT token for user authentication.
+  #   example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: query
+    name: job_id
+    required: true
+    type: integer
+    description: Unique identifier of the job whose applications are being listed. Must be 1 or above.
+    example: 42
+  - in: query
+    name: page
+    required: false
+    type: integer
+    description: Page number for pagination. Must be a positive integer. Defaults to 1.
+    example: 1
+  - in: query
+    name: limit
+    required: false
+    type: integer
+    description: Number of applications per page. Must be between 1 and 100. Defaults to 10.
+    example: 20
+responses:
+  200:
+    description: Applications retrieved successfully.
+    schema:
+      type: object
+      properties:
+        info:
+          type: array
+          items:
+            type: object
+            properties:
+              application_id:
+                type: integer
+                example: 101
+              job_id:
+                type: integer
+                example: 42
+              user_id:
+                type: integer
+                example: 7
+              status:
+                type: integer
+                enum: [1, 2, 3, 4]
+                example: 2
+                description: |
+                  Status codes:
+                  - 1: Pending
+                  - 2: Under Review
+                  - 3: Accepted
+                  - 4: Rejected
+              created_at:
+                type: string
+                example: "2025-10-23 10:23:45"
+              updated_at:
+                type: string
+                example: "2025-11-01 09:15:00"
+  400:
+    description: Invalid query parameters or bad request.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Bad request"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  500:
+    description: Unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Internal server error"
