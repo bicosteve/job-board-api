@@ -29,7 +29,7 @@ from ..utils.logger import Logger
 class RegisterUserController(Resource):
     register_schema = RegisterSchema()
 
-    @swag_from("../docs/register.yml")
+    @swag_from("../docs/register_user.yml")
     def post(self):
         data: Optional[Union[Dict[str, Any], List[Dict[str, Any]]]] = None
         try:
@@ -91,7 +91,7 @@ class RegisterUserController(Resource):
 class LoginUserController(Resource):
     login_schema = LoginSchema()
 
-    @swag_from("../docs/login.yml")
+    @swag_from("../docs/login_user.yml")
     def post(self):
         try:
             data = LoginUserController.login_schema.load(request.get_json())
@@ -141,7 +141,7 @@ class LoginUserController(Resource):
 class UserProfileController(Resource):
     """Get user profile"""
 
-    @swag_from("../docs/get_profile.yml")
+    @swag_from("../docs/get_user.yml")
     def get(self):
         """Gets user profile and return the details"""
         auth_header = request.headers.get("Authorization")
@@ -203,7 +203,7 @@ class CheckAppHealthController(Resource):
 class VerifyUserAccountController(Resource):
     verify_account_schema = VerifyAccountSchema()
 
-    @swag_from("../docs/verify_account.yml")
+    @swag_from("../docs/verify_user_account.yml")
     def post(self):
         try:
             data = VerifyUserAccountController.verify_account_schema.load(
@@ -238,7 +238,7 @@ class VerifyUserAccountController(Resource):
 class RequestUserPasswordResetController(Resource):
     request_reset_password_schema = RequestResetPasswordSchema()
 
-    @swag_from("../docs/request_reset_code.yml")
+    @swag_from("../docs/request_user_reset_code.yml")
     def post(self):
         try:
             data = RequestUserPasswordResetController.request_reset_password_schema.load(
@@ -267,7 +267,7 @@ class RequestUserPasswordResetController(Resource):
 class ResetUserPasswordController(Resource):
     reset_password_schema = ResetPasswordSchema()
 
-    @swag_from("../docs/password_reset.yml")
+    @swag_from("../docs/user_password_reset.yml")
     def post(self):
         token = str(request.args.get("token"))
         if len(token) < 1 or None:

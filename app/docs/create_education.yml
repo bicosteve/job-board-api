@@ -1,0 +1,57 @@
+tags:
+  - Education
+operationId: createEducation
+description: Creates a new education record for the authenticated user.
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [Secondary, University, Certificates]
+          example: University
+        institution:
+          type: string
+          example: University of Nairobi
+        field:
+          type: string
+          example: Computer Science
+        start_date:
+          type: string
+          format: date
+          example: "01-09-2020"
+        end_date:
+          type: string
+          description: Accepts either a date in dd-MM-YYYY format or the string "ongoing".
+          example: "ongoing"
+        description:
+          type: string
+          example: Specialized in backend engineering and API design.
+      required:
+        - level
+        - institution
+        - start_date
+        - end_date
+        - description
+responses:
+  201:
+    description: Education record created successfully
+  400:
+    description: Validation error
+  500:
+    description: Internal server error

@@ -1,10 +1,7 @@
 tags:
-  - User Profile
-# summary: Get user profile
+  - Profile
 operationId: getProfile
-description: |
-  Retrieves a user's profile information based on the JWT token provided in the Authorization header.
-  The token must be in the format `Bearer <token>`.
+description: Retrieves the profile and associated education record for the authenticated user.
 produces:
   - application/json
 security:
@@ -18,46 +15,65 @@ parameters:
     example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 responses:
   200:
-    description: Successful response with user profile details.
+    description: Profile retrieved successfully
     schema:
       type: object
       properties:
-        profile_id:
-          type: string
-          example: "12345"
-        email:
-          type: string
-          example: "user@example.com"
-        username:
-          type: string
-          example: "user123"
-        status:
-          type: integer
-          example: 1
-        created_at:
-          type: string
-          example: "2025-10-23 10:23:45"
-  401:
-    description: Missing or invalid token.
+        profile:
+          type: object
+          properties:
+            first_name:
+              type: string
+              example: "Steve"
+            last_name:
+              type: string
+              example: "Bico"
+            cv_url:
+              type: string
+              format: uri
+              example: "https://example.com/cv.pdf"
+            level:
+              type: string
+              enum: [Secondary, University, Certificates]
+              example: "University"
+            institution:
+              type: string
+              example: "University of Nairobi"
+            field:
+              type: string
+              example: "Computer Science"
+            start_date:
+              type: string
+              format: date
+              example: "2020-09-01"
+            end_date:
+              type: string
+              description: Accepts either a date in YYYY-MM-DD format or the string "ongoing".
+              example: "ongoing"
+            description:
+              type: string
+              example: "Specialized in backend engineering and API design."
+  400:
+    description: Bad request or unexpected error
     schema:
       type: object
       properties:
         error:
           type: string
-          example: "Authorization missing header"
+          example: "Invalid token format"
   404:
-    description: User not found.
+    description: Profile not found
     schema:
       type: object
       properties:
         error:
           type: string
-          example: "User not found"
+          example: "Profile not found"
   500:
-    description: Unexpected server error.
+    description: Internal server error
     schema:
       type: object
       properties:
         error:
           type: string
-          example: "Internal server error"
+          example: "Database connection failed"
