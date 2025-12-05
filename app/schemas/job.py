@@ -61,7 +61,15 @@ class PaginationSchema(Schema):
 
 
 class JobIdSchema(Schema):
-    job_id = fields.Int(required=True)
+    job_id = fields.Int(
+        required=True,
+        validate=[validate.Range(min=1)],
+        error_messages={
+            'required': 'This field is required',
+            'invalid': 'Must be an integer',
+            'min': 'Must be 1 or above'
+        }
+    )
 
 
 class JobUpdateSchema(Schema):

@@ -1,0 +1,62 @@
+tags:
+  - User
+operationId: getUser
+description: |
+  Retrieves a user's profile information based on the JWT token provided in the Authorization header.
+  The token must be in the format `Bearer <token>`.
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+responses:
+  200:
+    description: Successful response with user profile details.
+    schema:
+      type: object
+      properties:
+        profile_id:
+          type: string
+          example: "12345"
+        email:
+          type: string
+          example: "user@example.com"
+        username:
+          type: string
+          example: "user123"
+        status:
+          type: integer
+          example: 1
+        created_at:
+          type: string
+          example: "2025-10-23 10:23:45"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  404:
+    description: User not found.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "User not found"
+  500:
+    description: Unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Internal server error"

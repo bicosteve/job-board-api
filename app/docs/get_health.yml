@@ -1,5 +1,5 @@
 tags:
-  - App HealthCheck
+  - HealthCheck
 # summary: Get status of the app
 operationId: appHealth
 description: Used to check if the app is running

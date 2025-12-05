@@ -1,6 +1,3 @@
-from typing import cast, Any, Dict
-
-from flask import make_response, jsonify
 from flask_restful import Resource, request
 from marshmallow import ValidationError
 from flasgger import swag_from
@@ -105,7 +102,7 @@ class JobObjectController(Resource):
         try:
             validated = schema.load({'job_id': job_id})
             if not isinstance(validated, dict):
-                return {'errors': f'error with job_id'}, 400
+                return {'errors': f'error with {job_id}'}, 400
             job = JobService.fetch_job(int(validated['job_id']))
             if not job:
                 return {'message': 'Job not found'}, 404

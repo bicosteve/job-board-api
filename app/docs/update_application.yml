@@ -1,0 +1,84 @@
+tags:
+  - Job Applications
+operationId: updateApplication
+description: |
+  Updates an application's status based on the `application_id` provided in the path parameter.
+  The request body must contain a valid `status` value.
+  Returns a success message on update.
+
+  ### Status Code Mapping
+  - **1**: Pending — application has been submitted but not yet reviewed.
+  - **2**: Under Review — application is currently being evaluated.
+  - **3**: Accepted — application has been approved.
+  - **4**: Rejected — application has been declined.
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: "Authorization"
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: path
+    name: application_id
+    required: true
+    type: integer
+    description: Unique identifier of the application to update.
+    example: 101
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        status:
+          type: integer
+          enum: [1, 2, 3, 4]
+          example: 2
+          description: Must be one of [1, 2, 3, 4] representing application status codes.
+      required:
+        - status
+responses:
+  200:
+    description: Application updated successfully.
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Application update success"
+  400:
+    description: Invalid request body or parameters.
+    schema:
+      type: object
+      properties:
+        errors:
+          type: string
+          example: "error validating payload {'status': 'invalid'}"
+  401:
+    description: Missing or invalid token.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Authorization missing header"
+  404:
+    description: Application not found or not updated.
+    schema:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Application 101 was not updated"
+  500:
+    description: Unexpected server error.
+    schema:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Internal server error"

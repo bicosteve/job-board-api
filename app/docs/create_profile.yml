@@ -1,0 +1,50 @@
+tags:
+  - Profile
+operationId: createProfile
+description: Creates a new profile record for the authenticated user.
+consumes:
+  - application/json
+produces:
+  - application/json
+security:
+  - BearerAuth: []
+parameters:
+  - in: header
+    name: Authorization
+    required: true
+    type: string
+    description: Bearer JWT token for user authentication.
+    example: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  - in: body
+    name: body
+    required: true
+    schema:
+      type: object
+      properties:
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Steve"
+          description: Required and must be between 2 and 100 characters.
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Bico"
+          description: Required and must be between 2 and 100 characters.
+        cv_url:
+          type: string
+          format: uri
+          example: "https://example.com/cv.pdf"
+          description: Optional CV URL, can be null.
+      required:
+        - first_name
+        - last_name
+responses:
+  201:
+    description: Profile created successfully
+  400:
+    description: Validation error
+  500:
+    description: Internal server error
