@@ -16,7 +16,7 @@ class DateOrOngoing(fields.Field):
 class EducationSchema(Schema):
     level = fields.Str(
         required=True,
-        allvalidate=validate.OneOf(
+        validate=validate.OneOf(
             ['Secondary', 'University', 'Certificates'])
     )
     institution = fields.Str(

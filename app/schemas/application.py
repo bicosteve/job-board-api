@@ -52,7 +52,7 @@ class JobApplicationSchema(Schema):
 class JobUpdateSchema(Schema):
     status = fields.Int(
         required=True,
-        allvalidate=validate.OneOf([1, 2, 3, 4]),
+        validate=validate.OneOf([1, 2, 3, 4]),
         error_messages={
             'required': 'This field is required',
             'invalid': 'Must be an integer',
