@@ -16,5 +16,4 @@ CREATE TABLE IF NOT EXISTS `jobs` (
     FOREIGN KEY (`admin_id`) REFERENCES `admins`(`admin_id`) ON DELETE CASCADE
 );
 
-CREATE INDEX `job_idx` ON `jobs`(`job_id`);
 CREATE INDEX `job_admin_idx` ON `jobs`(`admin_id`);

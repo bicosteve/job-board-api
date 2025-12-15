@@ -20,3 +20,4 @@ PyMySQL==1.1.2
 coverage==7.11.0
 flasgger==0.9.7.1
 cryptography==46.0.3
+gunicorn==22.0.0
