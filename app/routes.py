@@ -1,6 +1,3 @@
-import os
-
-
 from flask_restful import Api
 
 from .controllers.user_controllers import (
