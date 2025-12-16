@@ -10,13 +10,8 @@ CREATE TABLE IF NOT EXISTS `job_applications` (
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`),
     FOREIGN KEY (`job_id`) REFERENCES `jobs`(`job_id`),
     UNIQUE (`user_id`, `job_id`)
-);
+) ENGINE=InnoDB;
 
-
-
-CREATE INDEX `idx_job_app_user_status` ON `job_applications`(`user_id`);
-
-CREATE INDEX `idx_job_app_job_status` ON `job_applications`(`job_id`);
-
-CREATE INDEX `idx_job_app_user_status` ON `job_applications`(`status`);
+CREATE INDEX `idx_job_app_user_status` ON `job_applications`(`user_id`, `status`);
+CREATE INDEX `idx_job_app_job_status` ON `job_applications`(`job_id`, `status`);
 
