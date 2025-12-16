@@ -3,14 +3,14 @@ CREATE TABLE IF NOT EXISTS `profile` (
     `first_name` VARCHAR(100) NOT NULL,
     `last_name` VARCHAR(100) NOT NULL,
     `cv_url` VARCHAR(255),
-    `user_id` INT NOT NULL UNIQUE, -- Added UNIQUE constraint for 1:1 relationship (see note below)
+    `user_id` INT NOT NULL UNIQUE,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `modified_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (`user_id`) REFERENCES `user`(`user_id`) ON DELETE CASCADE
 );
 
--- Removed the unnecessary CREATE INDEX statement
+
 
 
 
