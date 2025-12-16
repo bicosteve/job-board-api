@@ -3,6 +3,7 @@ import os
 
 from flask import Flask
 from flasgger import Swagger
+from flask_cors import CORS
 
 from .db.db import DB
 from .db.redis import Cache
@@ -29,6 +30,9 @@ def create_app():
 
     # Swagger init
     Swagger(app, template=swagger_template)
+
+    # Enable cross origin requests
+    CORS(app)
 
     init_dependencies(app)
 
