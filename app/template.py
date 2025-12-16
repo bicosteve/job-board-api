@@ -3,6 +3,24 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+def get_swagger_host_and_schemes():
+    env = os.getenv('ENV')
+    host = '127.0.0.1:5005'
+    render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+    if env == 'dev':
+        schemes = ['http']
+        host = host
+    else:
+        schemes = ['https']
+        host = render_host
+
+    return host, schemes
+
+
+SWAGGER_HOST, SWAGGER_SCHEMES = get_swagger_host_and_schemes()
+
+
 swagger_template = {
     'info': {
         'title' : 'Job Board API',
@@ -14,7 +32,8 @@ swagger_template = {
         }
     },
     'basePath': '/',
-    'schemes': ['http', 'https'],
+    'host': SWAGGER_HOST,
+    'schemes': SWAGGER_SCHEMES,
     'securityDefinitions': {
         'BearerAuth': {
             'type': 'apiKey',

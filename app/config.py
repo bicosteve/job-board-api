@@ -40,6 +40,8 @@ class BaseConfig:
 
     # Docker subnet
     SUBNET = os.getenv("SUBNET", "172.25.0.0/16")
+    RENDER_HOST = os.getenv("RENDER_EXTERNAL_HOSTNAME",
+                            "job-board-api-esrv.onrender.com")
 
 
 class DevelopmentConfig(BaseConfig):
