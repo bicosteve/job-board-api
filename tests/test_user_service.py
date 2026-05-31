@@ -213,9 +213,9 @@ class TestUserService(unittest.TestCase):
     def test_verify_account_success_with_db_update(
         self, mock_verify_code, mock_update_status
     ):
-        """Should return True when cache fails but DB update succeeds"""
+        """Should return True when the cache validates and DB updates exactly one row"""
         mock_verify_code.return_value = True
-        mock_update_status.return_value = 2
+        mock_update_status.return_value = 1
 
         result = UserService.verify_account(self.email, self.code)
 
