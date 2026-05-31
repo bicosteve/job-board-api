@@ -87,7 +87,7 @@ class UserService:
             has_code = BaseCache.verify_code(email, code)
             active = 1
             if has_code:
-                return UserRepository.update_user_status(email, active) > 1
+                return UserRepository.update_user_status(email, active) >= 1
             return False
         except Exception as e:
             Logger.exception(str(e))

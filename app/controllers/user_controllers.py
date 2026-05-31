@@ -107,7 +107,7 @@ class LoginUserController(Resource):
                 raise ValueError("Expected dict, got None or list")
 
             user = UserService.get_user(email, password)
-            error = f"Failed to get user with email {data["email"]} on login"
+            error = f"Failed to get user with email {email} on login"
             if not user:
                 Logger.warn(error)
                 return {"msg": error}, 404
