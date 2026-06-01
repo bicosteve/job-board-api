@@ -11,11 +11,24 @@ type JobRow = {
   employment_type?: string | number;
 };
 
+type ApplicationRow = {
+  application_id: number;
+  user_id: number;
+  job_id?: number;
+  status: number;
+  cover_letter?: string;
+  applicant_email?: string;
+  applicant_first_name?: string;
+  applicant_last_name?: string;
+  applicant_cv_url?: string;
+  resume_url?: string;
+};
+
 type AppsInfo = {
   page: number;
   limit: number;
   count: number;
-  applications: Record<string, unknown>[];
+  applications: ApplicationRow[];
 };
 
 const EMPLOYMENT_TYPES = ["Full time", "Part time", "Contract", "Internship"] as const;
@@ -56,8 +69,7 @@ export default function AdminJobsPage() {
   const [appsPage, setAppsPage]               = useState(1);
   const [appsInfo, setAppsInfo]               = useState<AppsInfo | null>(null);
   const [appsErr, setAppsErr]                 = useState<string | null>(null);
-  const [statusDraft, setStatusDraft]         = useState<Record<number, number>>({});
-
+  const [statusDraft, setStatusDraft]         = useState<Record<number, number>>({});  const [selectedApplication, setSelectedApplication] = useState<ApplicationRow | null>(null);
   const loadJobs = useCallback(async () => {
     setJobsLoading(true);
     try {
@@ -207,7 +219,7 @@ export default function AdminJobsPage() {
           <div className="stat-card-label">Applications (selected job)</div>
         </div>
         <div className="stat-card">
-          <div className="stat-card-icon stat-card-icon-purple">⚡</div>
+          <div className="stat-card-icon stat-card-icon-purple"></div>
           <div className="stat-card-value">{liveConnected ? "On" : "Off"}</div>
           <div className="stat-card-label">Live stream</div>
         </div>
@@ -419,7 +431,10 @@ export default function AdminJobsPage() {
                 <thead>
                   <tr>
                     <th>App #</th>
-                    <th>Candidate ID</th>
+                    <th>Candidate</th>
+                    <th>Contact</th>
+                    <th>Resume</th>
+                    <th>Details</th>
                     <th>Current stage</th>
                     <th>Move to…</th>
                   </tr>
@@ -427,15 +442,38 @@ export default function AdminJobsPage() {
                 <tbody>
                   {appsInfo.applications.map((app) => {
                     const aid      = Number(app.application_id);
-                    const uid      = String(app.user_id ?? "—");
                     const current  = Number(app.status ?? 1);
                     const selected = statusDraft[aid] ?? current;
+                    const candidateName = app.applicant_first_name || app.applicant_last_name
+                      ? `${String(app.applicant_first_name ?? "")} ${String(app.applicant_last_name ?? "")}`.trim()
+                      : `User #${String(app.user_id ?? "—")}`;
+                    const candidateEmail = String(app.applicant_email ?? "—");
+                    const resumeLink = String(app.resume_url ?? app.applicant_cv_url ?? "");
                     return (
                       <tr key={aid}>
                         <td style={{ fontFamily: "monospace", fontSize: "0.82rem", color: "var(--text-faint)" }}>
                           #{aid}
                         </td>
-                        <td style={{ fontWeight: 500 }}>User #{uid}</td>
+                        <td style={{ fontWeight: 500 }}>{candidateName}</td>
+                        <td style={{ fontSize: "0.92rem", color: "var(--text-faint)" }}>{candidateEmail}</td>
+                        <td>
+                          {resumeLink ? (
+                            <a href={resumeLink} target="_blank" rel="noreferrer" className="link-secondary">
+                              View CV ↗
+                            </a>
+                          ) : (
+                            <span style={{ color: "var(--text-muted)" }}>No resume</span>
+                          )}
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn btn-ghost"
+                            onClick={() => setSelectedApplication(app)}
+                          >
+                            View details
+                          </button>
+                        </td>
                         <td>
                           <span className={appStatusClass(current)}>
                             {applicationStatusLabel(current)}
@@ -501,6 +539,77 @@ export default function AdminJobsPage() {
               </button>
             </div>
           </>
+        )}
+
+        {selectedApplication && (
+          <div className="modal-backdrop" role="dialog" aria-modal="true">
+            <div className="modal">
+              <div className="modal-header">
+                <div>
+                  <p className="section-label">Applicant details</p>
+                  <h3>{selectedApplication.applicant_first_name || selectedApplication.applicant_last_name ?
+                    `${selectedApplication.applicant_first_name ?? ""} ${selectedApplication.applicant_last_name ?? ""}`.trim() :
+                    `Applicant #${selectedApplication.user_id}`}
+                  </h3>
+                  <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.95rem" }}>
+                    Application ID #{selectedApplication.application_id}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  onClick={() => setSelectedApplication(null)}
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="modal-content">
+                <div className="modal-row">
+                  <span>Candidate email</span>
+                  <strong>{selectedApplication.applicant_email ?? "—"}</strong>
+                </div>
+                <div className="modal-row">
+                  <span>Resume link</span>
+                  {selectedApplication.resume_url ? (
+                    <a href={selectedApplication.resume_url} target="_blank" rel="noreferrer">
+                      Open application resume ↗
+                    </a>
+                  ) : (
+                    <span>No application resume provided</span>
+                  )}
+                </div>
+                <div className="modal-row">
+                  <span>Profile CV</span>
+                  {selectedApplication.applicant_cv_url ? (
+                    <a href={selectedApplication.applicant_cv_url} target="_blank" rel="noreferrer">
+                      Open profile CV ↗
+                    </a>
+                  ) : (
+                    <span>No profile CV uploaded</span>
+                  )}
+                </div>
+                <div className="modal-row">
+                  <span>Cover letter</span>
+                  <div className="modal-copy">
+                    {selectedApplication.cover_letter ? selectedApplication.cover_letter : "No cover letter provided."}
+                  </div>
+                </div>
+                <div className="modal-row">
+                  <span>Status</span>
+                  <span className={appStatusClass(selectedApplication.status)}>
+                    {applicationStatusLabel(selectedApplication.status)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setSelectedApplication(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </section>
     </div>

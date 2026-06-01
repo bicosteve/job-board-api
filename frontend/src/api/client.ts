@@ -73,3 +73,35 @@ export async function apiRequest<T = Json>(
 
   return data as T;
 }
+
+export async function apiUploadFile<T = Json>(
+  path: string,
+  file: File,
+  init: { token?: string | null } = {}
+): Promise<T> {
+  const base = getApiBase();
+  const url = path.startsWith("http") ? path : `${base}${path.startsWith("/") ? "" : "/"}${path}`;
+  const headers = new Headers();
+  if (init.token) {
+    headers.set("Authorization", `Bearer ${init.token}`);
+  }
+  const body = new FormData();
+  body.append("file", file);
+
+  const res = await fetch(url, { method: "POST", headers, body });
+  const text = await res.text();
+  let data: unknown = null;
+  if (text) {
+    try {
+      data = JSON.parse(text) as unknown;
+    } catch {
+      data = text;
+    }
+  }
+
+  if (!res.ok) {
+    throw new ApiError(parseErrorMessage(data, res.status), res.status, data);
+  }
+
+  return data as T;
+}

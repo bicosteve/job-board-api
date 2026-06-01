@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { apiRequest, ApiError } from "../api/client";
+import { apiRequest, apiUploadFile, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { employmentLabel, jobStatusLabel } from "../lib/labels";
 
@@ -25,9 +25,11 @@ export default function JobDetailPage() {
 
   const [cover, setCover] = useState("");
   const [resumeUrl, setResumeUrl] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [applyErr, setApplyErr] = useState<string | null>(null);
   const [applyOk, setApplyOk] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -46,7 +48,18 @@ export default function JobDetailPage() {
     setApplyErr(null);
     setApplyOk(false);
     setSubmitting(true);
+
     try {
+      let finalResumeUrl = resumeUrl;
+      if (resumeFile) {
+        setUploading(true);
+        const upload = await apiUploadFile<{ file_url: string }>(`/files/upload`, resumeFile, {
+          token: userToken,
+        });
+        finalResumeUrl = upload.file_url;
+        setUploading(false);
+      }
+
       await apiRequest(`/applications/job/create`, {
         method: "POST",
         token: userToken,
@@ -54,12 +67,14 @@ export default function JobDetailPage() {
           job_id: Number(jobId),
           status: 1,
           cover_letter: cover || null,
-          resume_url: resumeUrl || null,
+          resume_url: finalResumeUrl || null,
         }),
       });
       setApplyOk(true);
+      setResumeFile(null);
     } catch (e) {
       setApplyErr(e instanceof ApiError ? e.message : "Application failed");
+      setUploading(false);
     } finally {
       setSubmitting(false);
     }
@@ -214,9 +229,22 @@ export default function JobDetailPage() {
                     placeholder="https://your-resume.pdf"
                   />
                 </div>
+                <div className="field">
+                  <label>Upload résumé <span style={{ color: "var(--text-faint)", fontSize: "0.75rem" }}>(optional)</span></label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    onChange={(ev) => setResumeFile(ev.target.files?.[0] ?? null)}
+                  />
+                  {resumeFile && (
+                    <div style={{ marginTop: "0.55rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                      Selected file: {resumeFile.name}
+                    </div>
+                  )}
+                </div>
                 {applyErr && <div className="alert alert-error">{applyErr}</div>}
                 <div className="stack">
-                  <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  <button type="submit" className="btn btn-primary" disabled={submitting || uploading}>
                     {submitting ? "Submitting…" : "Submit application →"}
                   </button>
                 </div>
