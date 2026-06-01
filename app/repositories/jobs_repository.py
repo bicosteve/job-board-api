@@ -143,6 +143,35 @@ class JobRepository:
             raise GenericDatabaseError(f'{str(e)}')
 
     @staticmethod
+    def get_jobs_by_admin(admin_id: int, limit: int, offset: int) -> list:
+        conn = None
+        try:
+            conn = DB.get_db()
+            with conn.cursor(DictCursor) as cursor:
+                query = '''
+                SELECT * FROM jobs
+                WHERE admin_id = %s
+                ORDER BY job_id
+                LIMIT %s OFFSET %s
+                '''.strip()
+                cursor.execute(query, (admin_id, limit, offset))
+                result = cursor.fetchall()
+                jobs = [serialize_job(row) for row in result or []]
+                return jobs
+        except pymysql.MySQLError as e:
+            Logger.error(f'Database error: {str(e)}')
+            raise GenericDatabaseError(f"{str(e)}")
+        except Exception as e:
+            Logger.error(f'Unexpected error: {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')
+        except pymysql.MySQLError as e:
+            Logger.error(f'Database error: {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')
+        except Exception as e:
+            Logger.error(f'Unexpected error: {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')
+
+    @staticmethod
     def update_job(job_id: int, admin_id: int, data: dict[str, Any]) -> bool:
         conn = None
         try:

@@ -29,6 +29,8 @@ class EducationRepository:
                 field = data['field'] if data['field'] else ''
                 start_date = data['start_date']
                 end_date = data['end_date']
+                if end_date == 'ongoing':
+                    end_date = None
                 description = data['description']
 
                 cursor.execute(query, (user_id, level, institution,

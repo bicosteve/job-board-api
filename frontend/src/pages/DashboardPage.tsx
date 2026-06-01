@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiRequest, ApiError } from "../api/client";
+import { apiRequest, ApiError, getApiBase } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { applicationStatusLabel } from "../lib/labels";
+import { applicationStatusLabel, userStatusLabel } from "../lib/labels";
 
 type Me = Record<string, unknown>;
 type ProfileWrap = { profile?: Record<string, unknown> };
@@ -15,6 +15,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
   const [applications, setApplications] = useState<Record<string, unknown>[]>([]);
   const [err, setErr] = useState<string[] | null>(null);
+  const [liveConnected, setLiveConnected] = useState(false);
 
   useEffect(() => {
     if (!userToken) return;
@@ -60,6 +61,34 @@ export default function DashboardPage() {
     };
   }, [userToken]);
 
+  useEffect(() => {
+    if (!userToken) return;
+    const source = new EventSource(
+      `${getApiBase()}/applications/user/stream?token=${encodeURIComponent(userToken)}`
+    );
+
+    source.onopen = () => setLiveConnected(true);
+    source.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as Apps;
+        if (Array.isArray(payload.applications)) {
+          setApplications(payload.applications);
+        }
+      } catch {
+        // ignore malformed event payloads
+      }
+    };
+    source.onerror = () => {
+      setLiveConnected(false);
+      source.close();
+    };
+
+    return () => {
+      source.close();
+      setLiveConnected(false);
+    };
+  }, [userToken]);
+
   return (
     <>
       <div className="headline-row">
@@ -69,6 +98,11 @@ export default function DashboardPage() {
             Your personal snapshot with account details, profile information, and active
             applications.
           </p>
+          {userToken && (
+            <p style={{ color: liveConnected ? "var(--success)" : "var(--text-muted)", fontSize: "0.95rem", marginTop: "0.5rem" }}>
+              Live status: {liveConnected ? "connected" : "reconnecting"}
+            </p>
+          )}
         </div>
       </div>
 
@@ -101,14 +135,14 @@ export default function DashboardPage() {
             )}
             {"user_id" in me && (
               <>
-                <dt style={{ color: "var(--text-muted)" }}>User id</dt>
+                <dt style={{ color: "var(--text-muted)" }}>Account ID</dt>
                 <dd style={{ margin: 0 }}>{String(me.user_id)}</dd>
               </>
             )}
             {"status" in me && (
               <>
-                <dt style={{ color: "var(--text-muted)" }}>Status</dt>
-                <dd style={{ margin: 0 }}>{String(me.status)}</dd>
+                <dt style={{ color: "var(--text-muted)" }}>Account status</dt>
+                <dd style={{ margin: 0 }}>{userStatusLabel(me.status)}</dd>
               </>
             )}
           </dl>

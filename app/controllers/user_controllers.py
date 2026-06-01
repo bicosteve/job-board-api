@@ -9,6 +9,7 @@ from flasgger import swag_from
 
 
 from ..services.user_service import UserService
+from ..services.notification_service import NotificationService
 from ..schemas.user import (
     RegisterSchema,
     LoginSchema,
@@ -64,6 +65,9 @@ class RegisterUserController(Resource):
             if not UserService.store_verification_code(email, code):
                 Logger.error(f"Failed to store verification code for {email}")
                 return {"msg": "Verification code error"}, 500
+
+            if not NotificationService.send_verification_code(email, code, is_admin=False):
+                Logger.warn(f"Email delivery may have failed for verification email to {email}")
 
             Logger.info(f"User registered successfully: {email}")
             return {
@@ -258,6 +262,8 @@ class RequestUserPasswordResetController(Resource):
             if not token_data:
                 Logger.warn("An error occurred while storing reset token")
                 return {"error": "An error occurred while storing reset token"}, 500
+
+            NotificationService.send_password_reset(email, token_data.get('token', ''))
             return {"data": token_data}, 201
         except Exception as e:
             Logger.exception(f"Unexpected error {str(e)} occurred")

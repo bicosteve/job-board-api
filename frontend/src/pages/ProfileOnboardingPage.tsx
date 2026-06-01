@@ -10,12 +10,14 @@ export default function ProfileOnboardingPage() {
   const [cvUrl, setCvUrl] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!userToken) return;
     setErr(null);
     setOk(false);
+    setSubmitting(true);
     try {
       await apiRequest(`/profile/create`, {
         method: "POST",
@@ -29,6 +31,8 @@ export default function ProfileOnboardingPage() {
       setOk(true);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Could not save profile");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -61,11 +65,11 @@ export default function ProfileOnboardingPage() {
         {err && <div className="alert alert-error">{err}</div>}
         {ok && (
           <div className="alert alert-success">
-            Saved. Next step: add your education details.
+            Saved successfully. You can continue to education or keep editing.
           </div>
         )}
-        <button type="submit" className="btn btn-primary">
-          Save profile
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Saving…" : "Save profile"}
         </button>
         <Link
           to="/onboarding/education"
