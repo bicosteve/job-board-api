@@ -38,6 +38,7 @@ from .controllers.application_controllers import (
     UsersJobApplicationController,
     ApplicationUpdateController
 )
+from .controllers.file_controllers import FileUploadController
 
 
 def register_routes(app):
@@ -93,3 +94,10 @@ def register_routes(app):
                      f"{base}/applications/job/<int:application_id>")
     api.add_resource(ApplicationUpdateController,
                      f"{base}/applications/job/update/<int:application_id>")
+    api.add_resource(FileUploadController,
+                     f"{base}/files/upload")
+
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        from flask import send_from_directory
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
