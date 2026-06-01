@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiRequest, ApiError } from "../api/client";
+import { apiRequest, ApiError, getApiBase } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import { applicationStatusLabel, employmentLabel } from "../lib/labels";
 
@@ -26,6 +26,7 @@ export default function AdminJobsPage() {
 
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
+  const [liveConnected, setLiveConnected] = useState(false);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -41,6 +42,7 @@ export default function AdminJobsPage() {
 
   const [createErr, setCreateErr] = useState<string | null>(null);
   const [createOk, setCreateOk] = useState<string | null>(null);
+  const [createSubmitting, setCreateSubmitting] = useState(false);
 
   const [selectedJobId, setSelectedJobId] = useState<number | "">("");
   const [appsPage, setAppsPage] = useState(1);
@@ -53,14 +55,17 @@ export default function AdminJobsPage() {
     setJobsLoading(true);
     try {
       type R = { result: { jobs: JobRow[] } };
-      const res = await apiRequest<R>(`/public/jobs?page=1&limit=100`, { method: "GET" });
+      const res = await apiRequest<R>(`/admin/jobs/list?page=1&limit=100`, {
+        method: "GET",
+        token: adminToken,
+      });
       setJobs(Array.isArray(res.result?.jobs) ? res.result.jobs : []);
     } catch {
       setJobs([]);
     } finally {
       setJobsLoading(false);
     }
-  }, []);
+  }, [adminToken]);
 
   useEffect(() => {
     loadJobs();
@@ -78,24 +83,59 @@ export default function AdminJobsPage() {
       type R = { info: AppsInfo };
       const res = await apiRequest<R>(
         `/applications/job/list?job_id=${numericSelectedId}&page=${appsPage}&limit=10`,
-        { method: "GET" }
+        { method: "GET", token: adminToken }
       );
       setAppsInfo(res.info);
     } catch (e) {
       setAppsErr(e instanceof ApiError ? e.message : "Could not load applications");
       setAppsInfo(null);
     }
-  }, [numericSelectedId, appsPage]);
+  }, [numericSelectedId, appsPage, adminToken]);
 
   useEffect(() => {
     loadApplications();
   }, [loadApplications]);
+
+  useEffect(() => {
+    if (!adminToken || !numericSelectedId) {
+      setLiveConnected(false);
+      return;
+    }
+
+    const source = new EventSource(
+      `${getApiBase()}/applications/admin/stream?token=${encodeURIComponent(
+        adminToken
+      )}&job_id=${numericSelectedId}`
+    );
+
+    source.onopen = () => setLiveConnected(true);
+    source.onmessage = (event) => {
+      try {
+        const payload = JSON.parse(event.data) as AppsInfo;
+        if (payload && payload.applications) {
+          setAppsInfo(payload);
+        }
+      } catch {
+        // ignore invalid stream payloads
+      }
+    };
+    source.onerror = () => {
+      setLiveConnected(false);
+      source.close();
+    };
+
+    return () => {
+      source.close();
+      setLiveConnected(false);
+    };
+  }, [adminToken, numericSelectedId]);
 
   async function createJob(e: FormEvent) {
     e.preventDefault();
     if (!adminToken) return;
     setCreateErr(null);
     setCreateOk(null);
+    setCreateSubmitting(true);
     try {
       const details: Record<string, unknown> = {
         description,
@@ -128,6 +168,8 @@ export default function AdminJobsPage() {
       await loadJobs();
     } catch (err0) {
       setCreateErr(err0 instanceof ApiError ? err0.message : "Create failed");
+    } finally {
+      setCreateSubmitting(false);
     }
   }
 
@@ -164,6 +206,9 @@ export default function AdminJobsPage() {
           </p>
         </div>
         <div className="stack">
+          <p style={{ color: liveConnected ? "var(--success)" : "var(--text-muted)", margin: 0 }}>
+            Live application feed {liveConnected ? "connected" : "reconnecting"}
+          </p>
           <Link to="/" className="btn btn-secondary">
             ← Public jobs
           </Link>
@@ -245,8 +290,8 @@ export default function AdminJobsPage() {
           </div>
           {createErr && <div className="alert alert-error">{createErr}</div>}
           {createOk && <div className="alert alert-success">{createOk}</div>}
-          <button type="submit" className="btn btn-primary">
-            Submit to API
+          <button type="submit" className="btn btn-primary" disabled={createSubmitting}>
+            {createSubmitting ? "Submitting…" : "Submit to API"}
           </button>
         </form>
       </section>

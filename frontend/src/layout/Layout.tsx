@@ -1,7 +1,39 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { apiRequest, getApiBase } from "../api/client";
+import { useEffect, useMemo, useState } from "react";
+import { apiRequest } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+
+const footerSections = [
+  {
+    title: "Platform",
+    links: [
+      { label: "Jobs", to: "/" },
+      { label: "Dashboard", to: "/dashboard" },
+      { label: "Admin console", to: "/admin/jobs" },
+    ],
+  },
+  {
+    title: "Account",
+    links: [
+      { label: "Register", to: "/register" },
+      { label: "Sign in", to: "/login" },
+      { label: "Verify account", to: "/verify" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About OpenHire", to: "/" },
+      { label: "Employer hub", to: "/admin/login" },
+    ],
+  },
+];
+
+const healthStatus = {
+  ok: { label: "Live", tone: "online" },
+  down: { label: "Offline", tone: "offline" },
+  unknown: { label: "Checking", tone: "pending" },
+} as const;
 
 export default function Layout() {
   const { userToken, adminToken, logoutUser, logoutAdmin } = useAuth();
@@ -12,24 +44,38 @@ export default function Layout() {
     return saved === "dark" ? "dark" : "light";
   });
 
+  const navItems = useMemo(
+    () => [
+      { label: "Jobs", to: "/" },
+      ...(userToken ? [{ label: "Dashboard", to: "/dashboard" }] : []),
+      ...(userToken
+        ? [
+            { label: "Profile", to: "/onboarding/profile" },
+            { label: "Education", to: "/onboarding/education" },
+          ]
+        : []),
+      { label: "Employers", to: "/admin/login" },
+    ],
+    [userToken]
+  );
+
   useEffect(() => {
     let cancelled = false;
+
     async function ping() {
       try {
-        await apiRequest(`/health/check`, {
-          method: "GET",
-          headers: {},
-        });
+        await apiRequest(`/health/check`, { method: "GET", headers: {} });
         if (!cancelled) setHealth("ok");
       } catch {
         if (!cancelled) setHealth("down");
       }
     }
+
     ping();
-    const id = window.setInterval(ping, 45000);
+    const intervalId = window.setInterval(ping, 45000);
     return () => {
       cancelled = true;
-      window.clearInterval(id);
+      window.clearInterval(intervalId);
     };
   }, []);
 
@@ -38,25 +84,29 @@ export default function Layout() {
     window.localStorage.setItem("jobboard_theme", theme);
   }, [theme]);
 
+  const { label: healthLabel, tone: healthTone } = healthStatus[health];
+
   return (
     <>
       <header className="header">
         <div className="header-inner">
-          <Link to="/" className="logo">
-            Open<span className="logo-accent">Hire</span>
-          </Link>
-          <nav className="nav-links">
-            <NavLink to="/" end>
-              Jobs
-            </NavLink>
-            {userToken && (
-              <>
-                <NavLink to="/dashboard">Dashboard</NavLink>
-                <NavLink to="/onboarding/profile">Profile</NavLink>
-                <NavLink to="/onboarding/education">Education</NavLink>
-              </>
-            )}
-            <NavLink to="/admin/login">Employers</NavLink>
+          <div className="brand-group">
+            <Link to="/" className="logo">
+              Open<span className="logo-accent">Hire</span>
+            </Link>
+            <span className={`badge-online badge-${healthTone}`}>
+              <span className="badge-online-dot"></span>
+              {healthLabel}
+            </span>
+          </div>
+
+          <nav className="nav-links" aria-label="Primary navigation">
+            {navItems.map((item) => (
+              <NavLink key={item.to} to={item.to} end={item.to === "/"}>
+                {item.label}
+              </NavLink>
+            ))}
+
             <button
               type="button"
               className="btn btn-ghost theme-toggle"
@@ -65,10 +115,7 @@ export default function Layout() {
             >
               {theme === "light" ? "Dark mode" : "Light mode"}
             </button>
-            <span className="badge-online" title={`API ${getApiBase()}`}>
-              <span className="badge-online-dot" />
-              API {health === "ok" ? "live" : health === "down" ? "down" : "…"}
-            </span>
+
             {userToken ? (
               <button type="button" className="btn btn-secondary" onClick={logoutUser}>
                 Sign out
@@ -81,20 +128,23 @@ export default function Layout() {
                 </Link>
               </>
             )}
+
             {adminToken && (
-              <>
+              <div className="nav-admin-actions">
                 <NavLink to="/admin/jobs">Admin</NavLink>
                 <button type="button" className="btn btn-ghost" onClick={logoutAdmin}>
-                  Leave admin
+                  Exit admin
                 </button>
-              </>
+              </div>
             )}
           </nav>
         </div>
       </header>
+
       <main className="page">
         <Outlet />
       </main>
+
       <footer className="footer">
         <div className="footer-inner">
           <div className="footer-brand">
@@ -102,33 +152,26 @@ export default function Layout() {
               Open<span className="logo-accent">Hire</span>
             </Link>
             <p>
-              Premium recruiting site. Built for fast applications, clear
-              pipelines, and clean operations.
+              A modern hiring platform with clean pipelines, real-time updates, and a
+              polished application experience.
             </p>
           </div>
-          <div className="footer-col">
-            <h4>Platform</h4>
-            <Link to="/">Jobs</Link>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/admin/jobs">Admin console</Link>
-          </div>
-          <div className="footer-col">
-            <h4>Account</h4>
-            <Link to="/register">Register</Link>
-            <Link to="/login">Sign in</Link>
-            <Link to="/verify">Verify account</Link>
-          </div>
-          <div className="footer-col">
-            <h4>Deploy</h4>
-            <p>
-              Connect to OpenHire to get amazing job offers around the world,
-              We are here to connect you to the rest of the world.
-            </p>
-          </div>
+
+          {footerSections.map((section) => (
+            <div key={section.title} className="footer-col">
+              <h4>{section.title}</h4>
+              {section.links.map((link) => (
+                <Link key={link.to} to={link.to}>
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          ))}
         </div>
+
         <div className="footer-bottom">
           <span>OpenHire · Designed for high-trust hiring journeys</span>
-          <span>API status: {health === "ok" ? "Live" : health === "down" ? "Offline" : "Checking"}</span>
+          <span>API status: {healthLabel}</span>
         </div>
       </footer>
     </>

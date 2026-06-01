@@ -20,6 +20,17 @@ export function jobStatusLabel(code: string | number | undefined | null): string
   return (map[v] ?? v) || "—";
 }
 
+export function userStatusLabel(code: string | number | undefined | null): string {
+  const v = String(code ?? "");
+  const map: Record<string, string> = {
+    "0": "Pending verification",
+    "1": "Verified",
+    "2": "Suspended",
+    "3": "Deactivated",
+  };
+  return map[v] ?? (v.length ? v : "Unknown");
+}
+
 export const APPLICATION_STATUS_OPTIONS = [
   { value: 1, label: "Submitted" },
   { value: 2, label: "In review" },

@@ -13,11 +13,13 @@ export default function VerifyPage() {
   const [code, setCode] = useState(st?.verification_code_hint ?? "");
   const [msg, setMsg] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
     setMsg(null);
+    setSubmitting(true);
     try {
       await apiRequest(`/user/verify`, {
         method: "POST",
@@ -30,6 +32,8 @@ export default function VerifyPage() {
       });
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Verification failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -67,8 +71,8 @@ export default function VerifyPage() {
         </div>
         {err && <div className="alert alert-error">{err}</div>}
         {msg && <div className="alert alert-success">{msg}</div>}
-        <button type="submit" className="btn btn-primary">
-          Verify account
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Verifying…" : "Verify account"}
         </button>
         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
           Wrong place?{" "}

@@ -18,7 +18,8 @@ from .controllers.job_controllers import (
     PostJobController,
     JobsListController,
     JobObjectController,
-    ModifyJobObjectController
+    ModifyJobObjectController,
+    AdminJobsListController
 )
 from .controllers.education_controllers import (
     EducationController
@@ -31,6 +32,8 @@ from .controllers.profile_controllers import (
 from .controllers.application_controllers import (
     ApplicationsListController,
     ApplicationsCreateController,
+    UserApplicationsStreamController,
+    AdminApplicationsStreamController,
     UsersJobApplicationsController,
     UsersJobApplicationController,
     ApplicationUpdateController
@@ -73,12 +76,17 @@ def register_routes(app):
     api.add_resource(JobsListController, f"{base}/public/jobs")
     api.add_resource(JobObjectController, f"{base}/public/jobs/<int:job_id>")
     api.add_resource(PostJobController, f"{base}/admin/jobs/create")
+    api.add_resource(AdminJobsListController, f"{base}/admin/jobs/list")
 
     # Job Application Routes
     api.add_resource(ApplicationsCreateController,
                      f"{base}/applications/job/create")
     api.add_resource(ApplicationsListController,
                      f"{base}/applications/job/list")
+    api.add_resource(UserApplicationsStreamController,
+                     f"{base}/applications/user/stream")
+    api.add_resource(AdminApplicationsStreamController,
+                     f"{base}/applications/admin/stream")
     api.add_resource(UsersJobApplicationsController,
                      f"{base}/applications/user/list")
     api.add_resource(UsersJobApplicationController,

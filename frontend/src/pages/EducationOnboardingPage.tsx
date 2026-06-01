@@ -17,12 +17,14 @@ export default function EducationOnboardingPage() {
 
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!userToken) return;
     setErr(null);
     setOk(false);
+    setSubmitting(true);
     try {
       await apiRequest(`/education/create`, {
         method: "POST",
@@ -39,6 +41,8 @@ export default function EducationOnboardingPage() {
       setOk(true);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Education create failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -101,12 +105,12 @@ export default function EducationOnboardingPage() {
         {err && <div className="alert alert-error">{err}</div>}
         {ok && (
           <div className="alert alert-success">
-            Education stored. You can load combined profile from the dashboard now.
+            Education saved. You can now view your profile on the dashboard.
           </div>
         )}
         <div className="stack">
-          <button type="submit" className="btn btn-primary">
-            Save education
+          <button type="submit" className="btn btn-primary" disabled={submitting}>
+            {submitting ? "Saving…" : "Save education"}
           </button>
           <Link to="/dashboard">Go to dashboard</Link>
         </div>

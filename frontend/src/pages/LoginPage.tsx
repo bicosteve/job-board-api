@@ -12,10 +12,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
+    setSubmitting(true);
     try {
       type R = { token?: string };
       const data = await apiRequest<R>(`/user/login`, {
@@ -31,6 +33,8 @@ export default function LoginPage() {
       navigate(from, { replace: true });
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Login failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -69,8 +73,8 @@ export default function LoginPage() {
           />
         </div>
         {err && <div className="alert alert-error">{err}</div>}
-        <button type="submit" className="btn btn-primary">
-          Sign in
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Signing in…" : "Sign in"}
         </button>
         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
           New here?{" "}

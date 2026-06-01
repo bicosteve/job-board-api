@@ -8,10 +8,12 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
+    setSubmitting(true);
     try {
       type R = { verification_code?: string };
       const res = await apiRequest<R>(`/user/register`, {
@@ -27,6 +29,8 @@ export default function RegisterPage() {
       });
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Registration failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -73,8 +77,8 @@ export default function RegisterPage() {
           />
         </div>
         {err && <div className="alert alert-error">{err}</div>}
-        <button type="submit" className="btn btn-primary">
-          Continue
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Submitting…" : "Continue"}
         </button>
         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
           Already registered?{" "}

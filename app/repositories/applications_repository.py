@@ -51,26 +51,27 @@ class ApplicationRepository:
             raise GenericDatabaseError(str(e))
 
     @staticmethod
-    def get_jobs_applications(job_id: int, limit: int, offset: int) -> list:
+    def get_jobs_applications(job_id: int, limit: int, offset: int, admin_id: int) -> list:
         conn = None
         try:
             Logger.info(f'Job id -> {job_id}')
             Logger.info(f'Job limit -> {limit}')
             Logger.info(f'Job offset -> {offset}')
+            Logger.info(f'Admin id -> {admin_id}')
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = '''
-                SELECT * FROM job_applications
-                WHERE job_id = %s
-                ORDER BY created_at
+                SELECT ja.* FROM job_applications ja
+                INNER JOIN jobs j ON ja.job_id = j.job_id
+                WHERE ja.job_id = %s AND j.admin_id = %s
+                ORDER BY ja.created_at
                 LIMIT %s OFFSET %s
                 '''.strip()
 
-                cursor.execute(query, (job_id, limit, offset))
+                cursor.execute(query, (job_id, admin_id, limit, offset))
                 res = cursor.fetchall()
 
-                job_apps = [serialize_application(
-                    row) for row in res or []]
+                job_apps = [serialize_application(row) for row in res or []]
                 return job_apps
         except pymysql.MySQLError as e:
             Logger.warn(f'PYMYSQL: an error {str(e)} occurred')
@@ -119,15 +120,62 @@ class ApplicationRepository:
                 cursor.execute(query, (user_id,))
                 res = cursor.fetchall()
 
-                applications = [serialize_application(
-                    row) for row in res or []]
+                applications = [serialize_application(row) for row in res or []]
                 return applications
         except pymysql.MySQLError as e:
             Logger.warn(f'PYMYSQL: {str(e)}')
-            raise GenericDatabaseError(f'{str(e)}')
+            raise GenericDatabaseError(str(e))
         except Exception as e:
             Logger.warn(f'EXCEPTION: {str(e)}')
-            raise GenericDatabaseError(f'{str(e)}')
+            raise GenericDatabaseError(str(e))
+
+    @staticmethod
+    def get_application_details(application_id: int) -> dict:
+        conn = None
+        try:
+            conn = DB.get_db()
+            with conn.cursor(DictCursor) as cursor:
+                query = '''
+                SELECT ja.*, u.email AS applicant_email, j.title AS job_title,
+                       j.company_name AS company_name, a.email AS employer_email
+                FROM job_applications ja
+                INNER JOIN `user` u ON ja.user_id = u.user_id
+                INNER JOIN jobs j ON ja.job_id = j.job_id
+                INNER JOIN admins a ON j.admin_id = a.admin_id
+                WHERE ja.application_id = %s
+                LIMIT 1
+                '''.strip()
+                cursor.execute(query, (application_id,))
+                row = cursor.fetchone()
+                if not row:
+                    return {}
+                return serialize_application(row)
+        except Exception as e:
+            Logger.warn(f'EXCEPTION: {str(e)}')
+            raise GenericDatabaseError(str(e))
+
+    @staticmethod
+    def get_job_info_for_notification(job_id: int) -> dict:
+        conn = None
+        try:
+            conn = DB.get_db()
+            with conn.cursor(DictCursor) as cursor:
+                query = '''
+                SELECT j.title AS job_title, j.company_name, a.email AS employer_email
+                FROM jobs j
+                INNER JOIN admins a ON j.admin_id = a.admin_id
+                WHERE j.job_id = %s
+                LIMIT 1
+                '''.strip()
+                cursor.execute(query, (job_id,))
+                row = cursor.fetchone()
+                return row or {}
+        except pymysql.MySQLError as e:
+            Logger.warn(f'PYMYSQL: {str(e)}')
+            raise GenericDatabaseError(str(e))
+        except Exception as e:
+            Logger.warn(f'EXCEPTION: {str(e)}')
+            raise GenericDatabaseError(str(e))
 
     @staticmethod
     def update_application(application_id: int, admin_id: int, status: int) -> bool:

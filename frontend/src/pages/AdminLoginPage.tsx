@@ -9,6 +9,7 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   if (adminToken) {
     return <Navigate to="/admin/jobs" replace />;
@@ -17,6 +18,7 @@ export default function AdminLoginPage() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
+    setSubmitting(true);
     try {
       type R = { token?: string };
       const data = await apiRequest<R>(`/admin/login`, {
@@ -31,6 +33,8 @@ export default function AdminLoginPage() {
       navigate("/admin/jobs");
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Admin login failed");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -67,8 +71,8 @@ export default function AdminLoginPage() {
           />
         </div>
         {err && <div className="alert alert-error">{err}</div>}
-        <button type="submit" className="btn btn-primary">
-          Enter admin workspace
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? "Signing in…" : "Enter admin workspace"}
         </button>
         <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
           Bootstrap a new moderator?{" "}

@@ -63,6 +63,27 @@ class JobService:
             raise GenericDatabaseError(f'{str(e)}')
 
     @staticmethod
+    def fetch_admin_jobs(token: str, page: int, limit: int) -> dict:
+        try:
+            decoded = Security.decode_jwt_token(token)
+            admin_id = decoded['profile_id']
+            if not admin_id:
+                raise InvalidLoginAttemptError('Unauthorized admin access')
+
+            offset = (page - 1) * limit
+            jobs = JobRepository.get_jobs_by_admin(admin_id, limit, offset)
+
+            return {
+                'page': page,
+                'limit': limit,
+                'count': len(jobs),
+                'jobs': jobs
+            }
+        except Exception as e:
+            Logger.warn(f'Error occurred {str(e)}')
+            raise GenericDatabaseError(f'{str(e)}')
+
+    @staticmethod
     def fetch_job(job_id: int) -> dict:
         try:
             return JobRepository.get_job(job_id)

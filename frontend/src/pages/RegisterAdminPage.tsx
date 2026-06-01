@@ -9,11 +9,14 @@ export default function RegisterAdminPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [codeHint, setCodeHint] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [verifying, setVerifying] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setErr(null);
     setCodeHint(null);
+    setCreating(true);
     try {
       type R = { verification_code?: string };
       const res = await apiRequest<R>(`/admin/register`, {
@@ -23,6 +26,8 @@ export default function RegisterAdminPage() {
       if (typeof res.verification_code === "string") setCodeHint(res.verification_code);
     } catch (err0) {
       setErr(err0 instanceof ApiError ? err0.message : "Admin register failed");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -30,6 +35,7 @@ export default function RegisterAdminPage() {
     e.preventDefault();
     if (!codeHint) return;
     setErr(null);
+    setVerifying(true);
     try {
       await apiRequest(`/admin/verify`, {
         method: "POST",
@@ -41,6 +47,8 @@ export default function RegisterAdminPage() {
       });
     } catch (err0) {
       setErr(err0 instanceof ApiError ? err0.message : "Verification failed");
+    } finally {
+      setVerifying(false);
     }
   }
 
@@ -85,14 +93,14 @@ export default function RegisterAdminPage() {
             <strong style={{ letterSpacing: "0.06em" }}>{codeHint}</strong>
           </div>
         )}
-        <button type="submit" className="btn btn-secondary">
-          Create admin
+        <button type="submit" className="btn btn-secondary" disabled={creating}>
+          {creating ? "Creating…" : "Create admin"}
         </button>
       </form>
       {codeHint && (
         <form className="form form-centered" style={{ marginTop: "1.5rem" }} onSubmit={verify}>
-          <button type="submit" className="btn btn-primary">
-            Verify and continue ({email})
+          <button type="submit" className="btn btn-primary" disabled={verifying}>
+            {verifying ? "Verifying…" : `Verify and continue (${email})`}
           </button>
         </form>
       )}

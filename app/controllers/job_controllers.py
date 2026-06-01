@@ -113,6 +113,37 @@ class JobObjectController(Resource):
             return {'error': str(e)}, 400
 
 
+class AdminJobsListController(Resource):
+    @swag_from('../docs/get_jobs.yml')
+    def get(self):
+        try:
+            schema = PaginationSchema()
+            args = schema.load(request.args)
+            if not isinstance(args, dict):
+                Logger.warn(f'Error with the args dict {args}')
+                return {'error': 'Bad request'}, 400
+
+            page_number = args['page']
+            limit = args['limit']
+
+            if limit < 10:
+                limit = 5
+            if page_number < 1:
+                page_number = 1
+
+            token_or_error = get_auth_token()
+            if isinstance(token_or_error, tuple):
+                return token_or_error
+            token = token_or_error
+
+            result = JobService.fetch_admin_jobs(token, page_number, limit)
+            return {'result': result}, 200
+        except ValidationError as e:
+            return {'error': str(e)}, 400
+        except Exception as e:
+            return {'error': str(e)}, 400
+
+
 class ModifyJobObjectController(Resource):
     @swag_from("../docs/update_job.yml")
     def put(self, job_id):
