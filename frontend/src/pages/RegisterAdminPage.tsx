@@ -4,13 +4,13 @@ import { apiRequest, ApiError } from "../api/client";
 
 export default function RegisterAdminPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail]                   = useState("");
+  const [password, setPassword]             = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [codeHint, setCodeHint] = useState<string | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [verifying, setVerifying] = useState(false);
+  const [err, setErr]                       = useState<string | null>(null);
+  const [codeHint, setCodeHint]             = useState<string | null>(null);
+  const [creating, setCreating]             = useState(false);
+  const [verifying, setVerifying]           = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -41,10 +41,7 @@ export default function RegisterAdminPage() {
         method: "POST",
         body: JSON.stringify({ email, verification_code: codeHint }),
       });
-      navigate("/admin/login", {
-        replace: true,
-        state: { banner: "Admin verified — sign in." },
-      });
+      navigate("/admin/login", { replace: true, state: { banner: "Admin verified — sign in." } });
     } catch (err0) {
       setErr(err0 instanceof ApiError ? err0.message : "Verification failed");
     } finally {
@@ -53,61 +50,102 @@ export default function RegisterAdminPage() {
   }
 
   return (
-    <>
-      <div className="headline-row">
-        <div className="form-shell">
-          <h1 className="display">Register admin</h1>
-          <p className="tagline">
-            Create an employer account, then confirm the verification code to activate access.
-          </p>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-card-icon" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 8px 24px rgba(99,102,241,0.35)" }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 00-3-3.87" />
+            <path d="M16 3.13a4 4 0 010 7.75" />
+          </svg>
         </div>
-      </div>
-      <div className="detail-shell form-shell">
-      <form className="form form-centered" onSubmit={onSubmit}>
-        <div className="field">
-          <label>Email</label>
-          <input type="email" value={email} onChange={(ev) => setEmail(ev.target.value)} required />
-        </div>
-        <div className="field">
-          <label>Password (max 20 per schema)</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(ev) => setPassword(ev.target.value)}
-            required
-          />
-        </div>
-        <div className="field">
-          <label>Confirm</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(ev) => setConfirmPassword(ev.target.value)}
-            required
-          />
-        </div>
-        {err && <div className="alert alert-error">{err}</div>}
-        {codeHint && (
-          <div className="alert alert-success">
-            Verification code:{" "}
-            <strong style={{ letterSpacing: "0.06em" }}>{codeHint}</strong>
+        <h1 className="auth-title">Register employer</h1>
+        <p className="auth-subtitle">
+          Create an employer account to post jobs and manage your hiring pipeline.
+        </p>
+
+        {!codeHint ? (
+          <form className="form" onSubmit={onSubmit}>
+            <div className="field">
+              <label>Work email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(ev) => setEmail(ev.target.value)}
+                placeholder="admin@company.com"
+                required
+              />
+            </div>
+            <div className="field">
+              <label>
+                Password{" "}
+                <span style={{ color: "var(--text-faint)", fontSize: "0.75rem" }}>(max 20 chars)</span>
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(ev) => setPassword(ev.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Confirm password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(ev) => setConfirmPassword(ev.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {err && <div className="alert alert-error">{err}</div>}
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: "100%", justifyContent: "center", padding: "0.75rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 6px 20px rgba(99,102,241,0.3)" }}
+              disabled={creating}
+            >
+              {creating ? "Creating account…" : "Create employer account →"}
+            </button>
+          </form>
+        ) : (
+          <div>
+            <div className="alert alert-success" style={{ marginBottom: "1.25rem" }}>
+              <span>✓</span>
+              <div>
+                <strong>Account created!</strong>
+                <p style={{ margin: "0.3rem 0 0", fontSize: "0.85rem" }}>
+                  Your verification code:{" "}
+                  <code style={{ fontFamily: "monospace", fontWeight: 700, letterSpacing: "0.12em", fontSize: "0.95rem" }}>
+                    {codeHint}
+                  </code>
+                </p>
+              </div>
+            </div>
+
+            <form className="form" onSubmit={verify}>
+              {err && <div className="alert alert-error">{err}</div>}
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ width: "100%", justifyContent: "center", padding: "0.75rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 6px 20px rgba(99,102,241,0.3)" }}
+                disabled={verifying}
+              >
+                {verifying ? "Verifying…" : `Verify & continue as ${email} →`}
+              </button>
+            </form>
           </div>
         )}
-        <button type="submit" className="btn btn-secondary" disabled={creating}>
-          {creating ? "Creating…" : "Create admin"}
-        </button>
-      </form>
-      {codeHint && (
-        <form className="form form-centered" style={{ marginTop: "1.5rem" }} onSubmit={verify}>
-          <button type="submit" className="btn btn-primary" disabled={verifying}>
-            {verifying ? "Verifying…" : `Verify and continue (${email})`}
-          </button>
-        </form>
-      )}
+
+        <p className="auth-footer-link" style={{ marginTop: "1.25rem" }}>
+          Already have an account?{" "}
+          <Link to="/admin/login">Sign in</Link>
+        </p>
       </div>
-      <p style={{ marginTop: "2rem", fontSize: "0.9rem" }}>
-        <Link to="/admin/login">Back to employer login</Link>
-      </p>
-    </>
+    </div>
   );
 }

@@ -50,6 +50,7 @@ class BaseConfig:
     EMAIL_FROM = os.getenv("EMAIL_FROM", os.getenv("CONTACT_EMAIL", "no-reply@example.com"))
     EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
     EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 
 
 class DevelopmentConfig(BaseConfig):

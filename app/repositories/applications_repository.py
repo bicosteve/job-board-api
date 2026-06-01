@@ -61,8 +61,13 @@ class ApplicationRepository:
             conn = DB.get_db()
             with conn.cursor(DictCursor) as cursor:
                 query = '''
-                SELECT ja.* FROM job_applications ja
+                SELECT ja.*, u.email AS applicant_email, u.user_id AS applicant_user_id,
+                       p.first_name AS applicant_first_name, p.last_name AS applicant_last_name,
+                       p.cv_url AS applicant_cv_url
+                FROM job_applications ja
                 INNER JOIN jobs j ON ja.job_id = j.job_id
+                INNER JOIN `user` u ON ja.user_id = u.user_id
+                LEFT JOIN profile p ON u.user_id = p.user_id
                 WHERE ja.job_id = %s AND j.admin_id = %s
                 ORDER BY ja.created_at
                 LIMIT %s OFFSET %s

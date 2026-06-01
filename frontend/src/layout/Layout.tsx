@@ -7,7 +7,7 @@ const footerSections = [
   {
     title: "Platform",
     links: [
-      { label: "Jobs", to: "/" },
+      { label: "Browse jobs", to: "/" },
       { label: "Dashboard", to: "/dashboard" },
       { label: "Admin console", to: "/admin/jobs" },
     ],
@@ -17,21 +17,21 @@ const footerSections = [
     links: [
       { label: "Register", to: "/register" },
       { label: "Sign in", to: "/login" },
-      { label: "Verify account", to: "/verify" },
+      { label: "Verify email", to: "/verify" },
     ],
   },
   {
-    title: "Company",
+    title: "Employers",
     links: [
-      { label: "About OpenHire", to: "/" },
       { label: "Employer hub", to: "/admin/login" },
+      { label: "Register admin", to: "/admin/register" },
     ],
   },
 ];
 
 const healthStatus = {
-  ok: { label: "Live", tone: "online" },
-  down: { label: "Offline", tone: "offline" },
+  ok:      { label: "Live",     tone: "online" },
+  down:    { label: "Offline",  tone: "offline" },
   unknown: { label: "Checking", tone: "pending" },
 } as const;
 
@@ -40,8 +40,7 @@ export default function Layout() {
   const [health, setHealth] = useState<"ok" | "down" | "unknown">("unknown");
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     if (typeof window === "undefined") return "light";
-    const saved = window.localStorage.getItem("jobboard_theme");
-    return saved === "dark" ? "dark" : "light";
+    return window.localStorage.getItem("jobboard_theme") === "dark" ? "dark" : "light";
   });
 
   const navItems = useMemo(
@@ -61,7 +60,6 @@ export default function Layout() {
 
   useEffect(() => {
     let cancelled = false;
-
     async function ping() {
       try {
         await apiRequest(`/health/check`, { method: "GET", headers: {} });
@@ -70,13 +68,9 @@ export default function Layout() {
         if (!cancelled) setHealth("down");
       }
     }
-
     ping();
-    const intervalId = window.setInterval(ping, 45000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
+    const id = window.setInterval(ping, 45_000);
+    return () => { cancelled = true; window.clearInterval(id); };
   }, []);
 
   useEffect(() => {
@@ -95,7 +89,7 @@ export default function Layout() {
               Open<span className="logo-accent">Hire</span>
             </Link>
             <span className={`badge-online badge-${healthTone}`}>
-              <span className="badge-online-dot"></span>
+              <span className="badge-online-dot" />
               {healthLabel}
             </span>
           </div>
@@ -110,10 +104,10 @@ export default function Layout() {
             <button
               type="button"
               className="btn btn-ghost theme-toggle"
-              onClick={() => setTheme((prev) => (prev === "light" ? "dark" : "light"))}
+              onClick={() => setTheme((p) => (p === "light" ? "dark" : "light"))}
               aria-label="Toggle color theme"
             >
-              {theme === "light" ? "Dark mode" : "Light mode"}
+              {theme === "light" ? "☽ Dark" : "☼ Light"}
             </button>
 
             {userToken ? (
@@ -122,9 +116,9 @@ export default function Layout() {
               </button>
             ) : (
               <>
-                <NavLink to="/login">Sign in</NavLink>
+                <NavLink to="/login" style={{ padding: "0.4rem 0.65rem" }}>Sign in</NavLink>
                 <Link to="/register" className="btn btn-primary">
-                  Join
+                  Join free
                 </Link>
               </>
             )}
@@ -153,7 +147,7 @@ export default function Layout() {
             </Link>
             <p>
               A modern hiring platform with clean pipelines, real-time updates, and a
-              polished application experience.
+              polished application experience for both seekers and employers.
             </p>
           </div>
 
@@ -170,8 +164,8 @@ export default function Layout() {
         </div>
 
         <div className="footer-bottom">
-          <span>OpenHire · Designed for high-trust hiring journeys</span>
-          <span>API status: {healthLabel}</span>
+          <span>© {new Date().getFullYear()} OpenHire · Built for high-trust hiring</span>
+          <span>API status: <strong style={{ color: "var(--text-muted)" }}>{healthLabel}</strong></span>
         </div>
       </footer>
     </>
