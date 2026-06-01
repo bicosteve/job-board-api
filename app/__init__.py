@@ -39,8 +39,11 @@ def create_app():
     init_dependencies(app)
 
     app.config.setdefault('UPLOAD_FOLDER', app.config.get('UPLOAD_FOLDER', 'uploads'))
-    upload_dir = Path(app.root_path) / app.config['UPLOAD_FOLDER']
-    upload_dir.mkdir(parents=True, exist_ok=True)
+    upload_folder = app.config['UPLOAD_FOLDER']
+    if not Path(upload_folder).is_absolute():
+        upload_folder = str(Path(app.root_path) / upload_folder)
+        app.config['UPLOAD_FOLDER'] = upload_folder
+    Path(upload_folder).mkdir(parents=True, exist_ok=True)
 
     app.teardown_appcontext(DB.close_db)
     app.teardown_appcontext(Cache.close_redis)

@@ -1,6 +1,6 @@
 import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
-import { apiRequest, ApiError } from "../api/client";
+import { apiRequest, apiUploadFile, ApiError } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProfileOnboardingPage() {
@@ -8,9 +8,11 @@ export default function ProfileOnboardingPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName]   = useState("");
   const [cvUrl, setCvUrl]         = useState("");
+  const [cvFile, setCvFile]       = useState<File | null>(null);
   const [err, setErr]             = useState<string | null>(null);
   const [ok, setOk]               = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -19,18 +21,30 @@ export default function ProfileOnboardingPage() {
     setOk(false);
     setSubmitting(true);
     try {
+      let finalCvUrl = cvUrl;
+      if (cvFile) {
+        setUploading(true);
+        const upload = await apiUploadFile<{ file_url: string }>(`/files/upload`, cvFile, {
+          token: userToken,
+        });
+        finalCvUrl = upload.file_url;
+        setUploading(false);
+      }
+
       await apiRequest(`/profile/create`, {
         method: "POST",
         token: userToken,
         body: JSON.stringify({
           first_name: firstName,
           last_name: lastName,
-          cv_url: cvUrl || null,
+          cv_url: finalCvUrl || null,
         }),
       });
       setOk(true);
+      setCvFile(null);
     } catch (e) {
       setErr(e instanceof ApiError ? e.message : "Could not save profile");
+      setUploading(false);
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +118,7 @@ export default function ProfileOnboardingPage() {
 
           <div className="field">
             <label htmlFor="cv">
-              CV / Resume URL{" "}
+              CV / Resume URL or upload file{" "}
               <span style={{ color: "var(--text-faint)", fontSize: "0.75rem" }}>(optional)</span>
             </label>
             <input
@@ -114,6 +128,21 @@ export default function ProfileOnboardingPage() {
               onChange={(ev) => setCvUrl(ev.target.value)}
               placeholder="https://your-cv-link.pdf"
             />
+          </div>
+
+          <div className="field">
+            <label htmlFor="cv-file">Upload CV / Resume</label>
+            <input
+              id="cv-file"
+              type="file"
+              accept=".pdf,.doc,.docx,.txt"
+              onChange={(ev) => setCvFile(ev.target.files?.[0] ?? null)}
+            />
+            {cvFile && (
+              <div style={{ marginTop: "0.55rem", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                Selected file: {cvFile.name}
+              </div>
+            )}
           </div>
 
           {err && <div className="alert alert-error">{err}</div>}
