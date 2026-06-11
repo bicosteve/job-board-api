@@ -12,6 +12,7 @@ from ..schemas.admin import (
 from ..utils.helpers import Helpers
 from ..utils.logger import Logger
 from ..services.admin_service import AdminService
+from ..services.notification_service import NotificationService
 from ..utils.exceptions import (
     UserExistError,
     GenericDatabaseError,
@@ -45,6 +46,9 @@ class RegisterAdminController(Resource):
             if res['rows'] < 1:
                 Logger.warn("Admin not registered")
                 return {'msg': "Admin not registered"}, 500
+
+            if not NotificationService.send_verification_code(data['email'], code, is_admin=True):
+                Logger.warn(f"Email delivery may have failed for admin verification to {data['email']}")
 
             return {"msg": "Admin created", "verification_code": code}, 201
         except ValidationError as e:

@@ -5,6 +5,8 @@ from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 
+from pathlib import Path
+
 from .db.db import DB
 from .db.redis import Cache
 from .routes import register_routes
@@ -35,6 +37,13 @@ def create_app():
     CORS(app)
 
     init_dependencies(app)
+
+    app.config.setdefault('UPLOAD_FOLDER', app.config.get('UPLOAD_FOLDER', 'uploads'))
+    upload_folder = app.config['UPLOAD_FOLDER']
+    if not Path(upload_folder).is_absolute():
+        upload_folder = str(Path(app.root_path) / upload_folder)
+        app.config['UPLOAD_FOLDER'] = upload_folder
+    Path(upload_folder).mkdir(parents=True, exist_ok=True)
 
     app.teardown_appcontext(DB.close_db)
     app.teardown_appcontext(Cache.close_redis)

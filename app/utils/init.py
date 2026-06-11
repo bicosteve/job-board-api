@@ -9,10 +9,10 @@ import redis
 from .logger import Logger
 
 
-def retry_connection(func, retries=3, delay=2, backoff=2):
+def retry_connection(func, retries=10, delay=3, backoff=2):
     """
     A wrapper for connection attempts.
-    - retires: number of retry attempts
+    - retries: number of retry attempts
     - delay: initial delay in seconds
     - backoff: multiplier for exponential backoff
     """
