@@ -18,7 +18,8 @@ from .controllers.job_controllers import (
     PostJobController,
     JobsListController,
     JobObjectController,
-    ModifyJobObjectController
+    ModifyJobObjectController,
+    AdminJobsListController
 )
 from .controllers.education_controllers import (
     EducationController
@@ -31,10 +32,13 @@ from .controllers.profile_controllers import (
 from .controllers.application_controllers import (
     ApplicationsListController,
     ApplicationsCreateController,
+    UserApplicationsStreamController,
+    AdminApplicationsStreamController,
     UsersJobApplicationsController,
     UsersJobApplicationController,
     ApplicationUpdateController
 )
+from .controllers.file_controllers import FileUploadController
 
 
 def register_routes(app):
@@ -73,15 +77,27 @@ def register_routes(app):
     api.add_resource(JobsListController, f"{base}/public/jobs")
     api.add_resource(JobObjectController, f"{base}/public/jobs/<int:job_id>")
     api.add_resource(PostJobController, f"{base}/admin/jobs/create")
+    api.add_resource(AdminJobsListController, f"{base}/admin/jobs/list")
 
     # Job Application Routes
     api.add_resource(ApplicationsCreateController,
                      f"{base}/applications/job/create")
     api.add_resource(ApplicationsListController,
                      f"{base}/applications/job/list")
+    api.add_resource(UserApplicationsStreamController,
+                     f"{base}/applications/user/stream")
+    api.add_resource(AdminApplicationsStreamController,
+                     f"{base}/applications/admin/stream")
     api.add_resource(UsersJobApplicationsController,
                      f"{base}/applications/user/list")
     api.add_resource(UsersJobApplicationController,
                      f"{base}/applications/job/<int:application_id>")
     api.add_resource(ApplicationUpdateController,
                      f"{base}/applications/job/update/<int:application_id>")
+    api.add_resource(FileUploadController,
+                     f"{base}/files/upload")
+
+    @app.route('/uploads/<path:filename>')
+    def uploaded_file(filename):
+        from flask import send_from_directory
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)

@@ -1,3 +1,7 @@
+import json
+import time
+
+from flask import Response, stream_with_context
 from flask_restful import Resource, request
 from marshmallow import ValidationError
 from flasgger import swag_from
@@ -52,8 +56,13 @@ class ApplicationsListController(Resource):
             if job_id < 1:
                 job_id = 1
 
-            result = ApplicationService.get_all_job_applications(job_id,
-                                                                 limit, page_number)
+            token_or_error = get_auth_token()
+            if isinstance(token_or_error, tuple):
+                return token_or_error
+            token = token_or_error
+
+            result = ApplicationService.get_all_job_applications(
+                token, job_id, limit, page_number)
             return {'info': result}, 200
         except Exception as e:
             return {'error': str(e)}, 400
@@ -115,6 +124,68 @@ class UsersJobApplicationsController(Resource):
         except Exception as e:
             Logger.warn(f'{str(e)}')
             return {'error': str(e)}, 400
+
+
+class UserApplicationsStreamController(Resource):
+    def get(self):
+        token = request.args.get('token')
+        if not token:
+            return {'error': 'Unauthorized'}, 401
+
+        try:
+            # Validate the token before opening the stream
+            ApplicationService.list_users_applications(token)
+        except Exception as e:
+            return {'error': str(e)}, 401
+
+        def event_stream():
+            previous_data = None
+            while True:
+                try:
+                    applications = ApplicationService.list_users_applications(token)
+                    payload = {'applications': applications}
+                    data = json.dumps(payload)
+                    if data != previous_data:
+                        yield f"data: {data}\n\n"
+                        previous_data = data
+                except Exception:
+                    yield 'event: error\ndata: {"message":"Unable to fetch updates"}\n\n'
+                time.sleep(5)
+
+        return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
+
+
+class AdminApplicationsStreamController(Resource):
+    def get(self):
+        token = request.args.get('token')
+        job_id = request.args.get('job_id', type=int)
+        if not token:
+            return {'error': 'Unauthorized'}, 401
+        if not job_id or job_id < 1:
+            return {'error': 'job_id is required'}, 400
+
+        try:
+            # Validate access before opening the stream
+            ApplicationService.get_all_job_applications(token, job_id, 10, 1)
+        except Exception as e:
+            return {'error': str(e)}, 401
+
+        def event_stream():
+            previous_data = None
+            page = 1
+            limit = 10
+            while True:
+                try:
+                    payload = ApplicationService.get_all_job_applications(token, job_id, limit, page)
+                    data = json.dumps(payload)
+                    if data != previous_data:
+                        yield f"data: {data}\n\n"
+                        previous_data = data
+                except Exception:
+                    yield 'event: error\ndata: {"message":"Unable to fetch updates"}\n\n'
+                time.sleep(5)
+
+        return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
 
 
 class UsersJobApplicationController(Resource):

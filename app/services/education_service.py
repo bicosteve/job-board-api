@@ -35,5 +35,9 @@ class EducationService:
                 raise GenericDatabaseError(
                     f'Failed to create education for {user_id} with  {payload}')
             return affected_row
+        except GenericGenerateAuthTokenError:
+            raise
+        except GenericDatabaseError:
+            raise
         except Exception as e:
-            raise Exception(f'error becasue of {str(e)}')
+            raise GenericDatabaseError(str(e))

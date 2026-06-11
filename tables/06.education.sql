@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS `education`(
     `institution` VARCHAR(255) NOT NULL,
     `field` VARCHAR(150),
     `start_date` DATE NOT NULL,
-    `end_date` DATE NOT NULL,
+    `end_date` DATE NULL,
     `description` TEXT NOT NULL,
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `modified_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

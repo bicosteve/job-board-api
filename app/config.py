@@ -42,6 +42,15 @@ class BaseConfig:
     SUBNET = os.getenv("SUBNET", "172.25.0.0/16")
     RENDER_HOST = os.getenv("RENDER_EXTERNAL_HOSTNAME",
                             "job-board-api-esrv.onrender.com")
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    EMAIL_HOST = os.getenv("EMAIL_HOST", "")
+    EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+    EMAIL_USER = os.getenv("EMAIL_USER", "")
+    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
+    EMAIL_FROM = os.getenv("EMAIL_FROM", os.getenv("CONTACT_EMAIL", "no-reply@example.com"))
+    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
+    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
 
 
 class DevelopmentConfig(BaseConfig):

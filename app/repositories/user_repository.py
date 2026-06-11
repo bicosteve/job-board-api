@@ -124,13 +124,14 @@ class UserRepository:
                 cursor.execute(query_two, (email,))
                 update_count = cursor.rowcount
 
-                # 3. Insert into user_setting
+                # 3. Ensure user_setting row: active_status==1 means verified user → not deactivated
+                is_deactivated = 0 if int(active_status) == 1 else 1
                 query_three = """
                 INSERT INTO user_setting(is_deactivated, user_id)
                 VALUES (%s,%s)
                 ON DUPLICATE KEY UPDATE is_deactivated = VALUES(is_deactivated)
                 """.strip()
-                cursor.execute(query_three, (active_status, user_id))
+                cursor.execute(query_three, (is_deactivated, user_id))
                 insert_count = cursor.rowcount
                 conn.commit()
 
