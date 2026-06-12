@@ -1,3 +1,9 @@
+install:
+	pipenv install -r requirements.txt
+
+activate:
+	pipenv shell
+
 run:
 	python run.py
 

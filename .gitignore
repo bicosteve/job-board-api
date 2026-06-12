@@ -8,3 +8,9 @@ frontend/dist/
 __pycache__
 *.py[cod]
 app/__pycache__
+app/controllers/__pycache__
+app/db/__pycache__
+app/repositories/__pycache__
+app/schemas/__pycache__
+app/services/__pycache__
+app/tests/__pycache__
