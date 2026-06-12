@@ -1,8 +1,7 @@
 import os
 from typing import Optional
 
-from ..utils.email import send_email
-from ..utils.logger import Logger
+from ..utils.email import Mails
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
@@ -33,7 +32,7 @@ class NotificationService:
             "If you did not request this, ignore this email.\n\n"
             f"Thank you,\n{role} team"
         )
-        return send_email(email, subject, body)
+        return Mails.send_mail_task.delay(email, subject, body)
 
     @staticmethod
     def send_password_reset(email: str, token: str) -> bool:
@@ -45,26 +44,30 @@ class NotificationService:
             "If you did not request a password reset, you can safely ignore this email.\n\n"
             "Thanks,\nCandidate support"
         )
-        return send_email(email, subject, body)
+        return Mails.send_mail_task.delay(email, subject, body)
 
     @staticmethod
-    def notify_applicant_of_submission(email: str, job_title: str, company_name: str) -> bool:
+    def notify_applicant_of_submission(
+        email: str, job_title: str, company_name: str
+    ) -> bool:
         subject = _subject("Candidate", "Your application is received")
         body = (
             f"Hi,\n\nYour application for '{job_title}' at {company_name} has been received."
             "\nWe will notify you when your hiring status changes.\n\n"
             "Track progress from your dashboard.\n\nBest,\nRecruiting team"
         )
-        return send_email(email, subject, body)
+        return Mails.send_mail_task.delay(email, subject, body)
 
     @staticmethod
-    def notify_employer_of_new_application(email: str, job_title: str, applicant_email: str) -> bool:
+    def notify_employer_of_new_application(
+        email: str, job_title: str, applicant_email: str
+    ) -> bool:
         subject = _subject("Employer", "New candidate application")
         body = (
             f"Hi,\n\nA new application has been submitted for '{job_title}' by {applicant_email}."
             "\nReview the application and update the status from your employer dashboard.\n\nBest,\nRecruiting platform"
         )
-        return send_email(email, subject, body)
+        return Mails.send_mail_task.delay(email, subject, body)
 
     @staticmethod
     def notify_applicant_status_change(
@@ -74,8 +77,8 @@ class NotificationService:
         company_label = f" at {company_name}" if company_name else ""
         subject = _subject("Candidate", "Application status updated")
         body = (
-            f"Hi,\n\nThe status of your application for '{job_title}'{company_label}" 
+            f"Hi,\n\nThe status of your application for '{job_title}'{company_label}"
             f"has changed to '{status_label}'.\n\n"
             "You can view the latest updates in your dashboard.\n\nBest,\nRecruiting team"
         )
-        return send_email(email, subject, body)
+        return Mails.send_mail.delay(email, subject, body)
