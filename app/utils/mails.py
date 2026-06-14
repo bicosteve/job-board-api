@@ -3,8 +3,7 @@ from flask import current_app
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
-from app import celery_app
-
+from ..extensions.celery import celery
 from .logger import Logger
 
 
@@ -71,7 +70,7 @@ class Mails:
             raise e
 
     @staticmethod
-    @celery_app.task(max_retries=3, default_retry_delay=60)
+    @celery.task(max_retries=3, default_retry_delay=60)
     def send_mail_task(
         email_from: str,
         email_to: str,

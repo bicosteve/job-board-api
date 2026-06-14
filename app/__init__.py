@@ -6,14 +6,14 @@ from flasgger import Swagger
 from flask import Flask
 from flask_cors import CORS
 
-from . import celery_app
-
-# from .celery_app import celery_app
 from .config import DevelopmentConfig, DockerConfig, ProductionConfig
 from .db.db import DB
 from .db.redis import Cache
+from .extensions.celery import celery
+from .extensions.celery import celery as celery_ext
 from .queues.queue import RabbitMQ
-from .routes import register_routes
+
+# from .routes import register_routes
 from .template import swagger_template
 from .utils.init import init_dependencies
 from .utils.logger import Logger
@@ -60,18 +60,23 @@ def create_app():
         )
     )
 
-    celery_app.conf.update(app.config)
+    celery.conf.update(app.config)
+    # celery_ext.flask_app = app
 
-    class ContextTask(celery_app.Task):
+    class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
             with app.app_context():
                 return self.run(*args, **kwargs)
 
-    celery_app.Task = ContextTask
+    celery.Task = ContextTask  # must be before mails.py is imported!
 
     app.teardown_appcontext(DB.close_db)
     app.teardown_appcontext(Cache.close_redis)
     app.teardown_appcontext(RabbitMQ.close_rabbitmq)
+
+    from .routes import register_routes
+
+    # here because of celery as it import mails.py!
 
     register_routes(app)
 
