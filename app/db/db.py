@@ -1,8 +1,8 @@
 import pymysql
-
 from flask import current_app, g
-from app.utils.logger import Logger
+
 from app.utils.exceptions import GenericDatabaseError
+from app.utils.logger import Logger
 
 
 class DB:
@@ -18,18 +18,19 @@ class DB:
                     cursorclass=pymysql.cursors.DictCursor,
                     autocommit=False,
                     ssl_disabled=False,
-                    connect_timeout=10
+                    connect_timeout=10,
                 )
             except pymysql.MySQLError as e:
-                Logger.error(f'MySQL connection error: {str(e)}')
+                Logger.error(f"MySQL connection error: {str(e)}")
                 raise GenericDatabaseError(
-                    f'Database connection error because of {str(e)}')
+                    f"Database connection error because of {str(e)}"
+                )
         else:
             try:
                 g.db.ping(reconnect=True)
             except Exception:
-                Logger.wart('Reconnecting to MySQL ...')
-                g.pop('db')
+                Logger.warn("Reconnecting to MySQL ...")
+                g.pop("db")
                 return DB.get_db()
         return g.db
 

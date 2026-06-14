@@ -1,30 +1,48 @@
 from datetime import datetime
-from typing import Dict, Any, Optional, Union, List
+from typing import Any, Dict, List, Optional, Union
 
+from flasgger import swag_from
 from flask import jsonify, make_response
 from flask_restful import Resource, request
-from marshmallow import ValidationError
 from jwt import ExpiredSignatureError, InvalidTokenError
-from flasgger import swag_from
+from marshmallow import ValidationError
 
-
-from ..services.user_service import UserService
-from ..services.notification_service import NotificationService
 from ..schemas.user import (
-    RegisterSchema,
     LoginSchema,
-    VerifyAccountSchema,
-    ResetPasswordSchema,
+    RegisterSchema,
     RequestResetPasswordSchema,
+    ResetPasswordSchema,
+    VerifyAccountSchema,
 )
+from ..services.notification_service import NotificationService
+from ..services.user_service import UserService
 from ..utils.exceptions import (
+    GenericDatabaseError,
     InvalidCredentialsError,
     UserExistError,
-    GenericDatabaseError,
 )
-from ..utils.security import Security
 from ..utils.helpers import Helpers
 from ..utils.logger import Logger
+from ..utils.security import Security
+
+
+class CheckAppHealthController(Resource):
+    """Get the app status"""
+
+    @swag_from("../docs/get_health.yml")
+    def get(self):
+        """Get the status of the app"""
+
+        now = datetime.now()
+
+        return {
+            "data": {
+                "time": str(now.time()),
+                "date": str(now.date()),
+                "now": now.strftime("%Y-%m-%d %H:%M:%S"),
+                "msg": "App is running successfully",
+            }
+        }, 200
 
 
 class RegisterUserController(Resource):
@@ -40,8 +58,7 @@ class RegisterUserController(Resource):
             elif isinstance(json_data, dict):
                 data = RegisterUserController.register_schema.load(json_data)
             else:
-                raise ValueError(
-                    f"Expected JSON object, got {type(json_data)}")
+                raise ValueError(f"Expected JSON object, got {type(json_data)}")
         except ValidationError as e:
             Logger.warn(f"Validation failed during registration {str(e)}")
             return {"error": str(e)}, 400
@@ -66,12 +83,16 @@ class RegisterUserController(Resource):
                 Logger.error(f"Failed to store verification code for {email}")
                 return {"msg": "Verification code error"}, 500
 
-            if not NotificationService.send_verification_code(email, code, is_admin=False):
-                Logger.warn(f"Email delivery may have failed for verification email to {email}")
+            if not NotificationService.send_verification_code(
+                email, code, is_admin=False
+            ):
+                Logger.warn(
+                    f"Email delivery may have failed for verification email to {email}"
+                )
 
             Logger.info(f"User registered successfully: {email}")
             return {
-                "msg": "user created",
+                "msg": "user created. Check inbox/spam for verification code",
                 "verification_code": code,
                 "email": email,
             }, 201
@@ -81,8 +102,7 @@ class RegisterUserController(Resource):
             return {"user_error": str(e)}, 400
 
         except GenericDatabaseError as e:
-            Logger.error(
-                f"Database error during registration for {email}-{str(e)}")
+            Logger.error(f"Database error during registration for {email}-{str(e)}")
             return {"db_error": str(e)}, 500
 
         except Exception as e:
@@ -105,8 +125,8 @@ class LoginUserController(Resource):
 
         try:
             if isinstance(data, dict):
-                email = data['email']
-                password = data['password']
+                email = data["email"]
+                password = data["password"]
             else:
                 raise ValueError("Expected dict, got None or list")
 
@@ -116,17 +136,12 @@ class LoginUserController(Resource):
                 Logger.warn(error)
                 return {"msg": error}, 404
 
-            if "token" not in user or not user['token']:
+            if "token" not in user or not user["token"]:
                 Logger.error("Token generation failed during login")
                 return {"msg": "Token generation failed"}, 500
 
             response = make_response(
-                jsonify(
-                    {
-                        "msg": "Login success",
-                        "token": user['token']
-                    }
-                ),
+                jsonify({"msg": "Login success", "token": user["token"]}),
                 200,
             )
             Logger.info(f"Login success {response}")
@@ -185,25 +200,6 @@ class UserProfileController(Resource):
             return {"error": str(e)}, 500
 
 
-class CheckAppHealthController(Resource):
-    """Get the app status"""
-
-    @swag_from("../docs/get_health.yml")
-    def get(self):
-        """Get the status of the app"""
-
-        now = datetime.now()
-
-        return {
-            "data": {
-                "time": str(now.time()),
-                "date": str(now.date()),
-                "now": now.strftime("%Y-%m-%d %H:%M:%S"),
-                "msg": "App is running successfully",
-            }
-        }, 200
-
-
 class VerifyUserAccountController(Resource):
     verify_account_schema = VerifyAccountSchema()
 
@@ -211,7 +207,8 @@ class VerifyUserAccountController(Resource):
     def post(self):
         try:
             data = VerifyUserAccountController.verify_account_schema.load(
-                request.get_json())
+                request.get_json()
+            )
         except ValidationError as e:
             Logger.warn(f"An error occured while validating payload {str(e)}")
             return {"validation_error": str(e)}, 400
@@ -245,15 +242,17 @@ class RequestUserPasswordResetController(Resource):
     @swag_from("../docs/request_user_reset_code.yml")
     def post(self):
         try:
-            data = RequestUserPasswordResetController.request_reset_password_schema.load(
-                request.get_json()
+            data = (
+                RequestUserPasswordResetController.request_reset_password_schema.load(
+                    request.get_json()
+                )
             )
         except ValidationError as e:
             Logger.warn(f"Error while validating payload {str(e)}")
             return {"validation_error": str(e)}, 400
 
         if isinstance(data, dict):
-            email = data['email']
+            email = data["email"]
         else:
             raise ValueError("Expected dict, got None or list")
 
@@ -263,8 +262,11 @@ class RequestUserPasswordResetController(Resource):
                 Logger.warn("An error occurred while storing reset token")
                 return {"error": "An error occurred while storing reset token"}, 500
 
-            NotificationService.send_password_reset(email, token_data.get('token', ''))
-            return {"data": token_data}, 201
+            NotificationService.send_password_reset(email, token_data.get("token", ""))
+            return {
+                "data": token_data,
+                "msg": "Check inbox/spam for verification code",
+            }, 201
         except Exception as e:
             Logger.exception(f"Unexpected error {str(e)} occurred")
             return {"generic_error": str(e)}, 500
@@ -282,7 +284,8 @@ class ResetUserPasswordController(Resource):
 
         try:
             data = ResetUserPasswordController.reset_password_schema.load(
-                request.get_json())
+                request.get_json()
+            )
         except ValidationError as e:
             Logger.warn(f"Error validating the payload {str(e)}")
             return {"validation_error": f"payload error {str(e)}"}
@@ -291,7 +294,7 @@ class ResetUserPasswordController(Resource):
             return {"generic_error": str(e)}, 500
 
         if isinstance(data, dict):
-            password = data['password']
+            password = data["password"]
         else:
             raise ValueError("Expected dict,got None or List")
 
