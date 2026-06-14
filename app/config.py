@@ -1,11 +1,13 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class BaseConfig:
-    '''Base configuration'''
+    """Base configuration"""
+
     # General Flask
     DEBUG = bool(os.getenv("DEBUG", "False").lower() == "true")
     PORT = int(os.getenv("PORT", 5005))
@@ -26,11 +28,18 @@ class BaseConfig:
     DB_PORT = int(os.getenv("DB_PORT", 3306))
 
     # Redis
-    ENV = os.getenv('ENV', 'dev')
-    REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
+    ENV = os.getenv("ENV", "dev")
+    REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+
+    # RabbitMQ
+    RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
+    RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
+    RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
+    RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
+    RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "/")
 
     # API
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
@@ -40,29 +49,47 @@ class BaseConfig:
 
     # Docker subnet
     SUBNET = os.getenv("SUBNET", "172.25.0.0/16")
-    RENDER_HOST = os.getenv("RENDER_EXTERNAL_HOSTNAME",
-                            "job-board-api-esrv.onrender.com")
+    RENDER_HOST = os.getenv(
+        "RENDER_EXTERNAL_HOSTNAME", "job-board-api-esrv.onrender.com"
+    )
+
+    # UI Configs
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-    EMAIL_HOST = os.getenv("EMAIL_HOST", "")
-    EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-    EMAIL_USER = os.getenv("EMAIL_USER", "")
-    EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "")
-    EMAIL_FROM = os.getenv("EMAIL_FROM", os.getenv("CONTACT_EMAIL", "no-reply@example.com"))
-    EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "True").lower() == "true"
-    EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", "False").lower() == "true"
+
+    # Mail Configs
+    EMAIL_FROM = os.getenv("EMAIL_FROM")
     UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
+
+    # Sendgrid Configs
+    SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "somestring")
+    CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
+        user=RABBITMQ_USER,
+        password=RABBITMQ_PASSWORD,
+        host=RABBITMQ_HOST,
+        port=RABBITMQ_PORT,
+        vhost=RABBITMQ_VHOST,
+    )
+    CELERY_RESULT_BACKEND = "redis://{redis_host}:{redis_port}/{redis_db}".format(
+        redis_host=REDIS_HOST,
+        redis_port=REDIS_PORT,
+        redis_db=REDIS_DB,
+    )
 
 
 class DevelopmentConfig(BaseConfig):
-    '''Development Configurations'''
+    """Development Configurations"""
+
     DEBUG = True
 
 
 class ProductionConfig(BaseConfig):
-    '''Production Configurations'''
+    """Production Configurations"""
+
     DEBUG = False
 
 
 class DockerConfig(BaseConfig):
-    '''Docker Container Configurations'''
+    """Docker Container Configurations"""
+
+    DEBUG = True
     DEBUG = True
