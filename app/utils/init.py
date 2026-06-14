@@ -1,10 +1,9 @@
 import sys
 import time
 
-
+import pika
 import pymysql
 import redis
-
 
 from .logger import Logger
 
@@ -42,7 +41,7 @@ def check_db(app):
             Logger.info("DB connection success")
         except Exception as e:
             Logger.exception(f"An error occured {str(e)}")
-            sys.exit(1)
+            raise
         finally:
             if conn is not None:
                 conn.close()
@@ -77,9 +76,51 @@ def check_cache(app):
                 Logger.error("Redis connection not success")
         except Exception as e:
             Logger.exception(f"Something went wrong {str(e)}")
-            sys.exit(1)
+            raise
+        finally:
+            if client is not None:
+                client.close()
 
     retry_connection(connect_redis)
+
+
+def check_broker(app):
+    def connect_rabbitmq():
+        connection = None
+        channel = None
+
+        try:
+            if app.config["RABBITMQ_PASSWORD"]:
+                credentials = pika.PlainCredentials(
+                    username=app.config["RABBITMQ_USER"],
+                    password=app.config["RABBITMQ_PASSWORD"],
+                )
+                parameters = pika.ConnectionParameters(
+                    host=app.config["RABBITMQ_HOST"],
+                    port=app.config["RABBITMQ_PORT"],
+                    credentials=credentials,
+                )
+            else:
+                parameters = pika.ConnectionParameters(
+                    host=app.config["RABBITMQ_HOST"],
+                    port=app.config["RABBITMQ_PORT"],
+                )
+
+            connection = pika.BlockingConnection(parameters=parameters)
+            channel = connection.channel()
+
+            if channel.is_open:
+                Logger.info("RabbitMQ connection success")
+            else:
+                Logger.error("RabbitMQ connection not successful")
+        except Exception as e:
+            Logger.exception(f"Something went wrong {str(e)}")
+            raise
+        finally:
+            if connection is not None and connection.is_open:
+                connection.close()
+
+    retry_connection(connect_rabbitmq)
 
 
 def init_dependencies(app):
@@ -102,4 +143,11 @@ def init_dependencies(app):
         check_cache(app)
     except Exception as e:
         Logger.error(f"Redis connection failed because of {str(e)}")
+        sys.exit(1)
+
+    # ==== 3. Check RabbitMQ ====
+    try:
+        check_broker(app)
+    except Exception as e:
+        Logger.error(f"RabbitMQ connection failed because of {str(e)}")
         sys.exit(1)
