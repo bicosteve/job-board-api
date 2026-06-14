@@ -92,7 +92,7 @@ class RegisterUserController(Resource):
 
             Logger.info(f"User registered successfully: {email}")
             return {
-                "msg": "user created",
+                "msg": "user created. Check inbox/spam for verification code",
                 "verification_code": code,
                 "email": email,
             }, 201
@@ -263,7 +263,10 @@ class RequestUserPasswordResetController(Resource):
                 return {"error": "An error occurred while storing reset token"}, 500
 
             NotificationService.send_password_reset(email, token_data.get("token", ""))
-            return {"data": token_data}, 201
+            return {
+                "data": token_data,
+                "msg": "Check inbox/spam for verification code",
+            }, 201
         except Exception as e:
             Logger.exception(f"Unexpected error {str(e)} occurred")
             return {"generic_error": str(e)}, 500
