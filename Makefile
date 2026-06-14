@@ -7,6 +7,9 @@ activate:
 run:
 	python run.py
 
+celery:
+	celery -A celery_worker.celery worker --loglevel=info
+
 test:
 	python -m unittest discover -s tests
 

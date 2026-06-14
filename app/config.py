@@ -56,9 +56,13 @@ class BaseConfig:
     # UI Configs
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
+    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
+
     # Mail Configs
     EMAIL_FROM = os.getenv("EMAIL_FROM")
-    UPLOAD_FOLDER = os.getenv("UPLOAD_FOLDER", "uploads")
+    MAILGUN_DOMAIN = os.getenv("MAILGUN_DOMAIN")
+    MAILGUN_API_KEY = os.getenv("MAILGUN_API_KEY")
+    MAILGUN_BASE_URL = os.getenv("MAILGUN_BASE_URL")
 
     # Sendgrid Configs
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "somestring")
