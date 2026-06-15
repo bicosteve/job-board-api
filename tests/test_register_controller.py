@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch
+
 from flask import Flask, json
 from marshmallow import ValidationError
 
@@ -14,76 +15,83 @@ class TestRegisterController(unittest.TestCase):
 
         # add the resource endpoint manually
         self.app.add_url_rule(
-            '/register', view_func=RegisterUserController.as_view('register'))
+            "/register", view_func=RegisterUserController.as_view("register")
+        )
 
-        self.email = 'john.doe@example.com'
-        self.password = 'secure1234'
+        self.email = "john.doe@example.com"
+        self.password = "secure1234"
 
         self.payload = {
-            'email': self.email,
-            'password': self.password,
-            'confirm_password': 'secure1234'
+            "email": self.email,
+            "password": self.password,
+            "confirm_password": "secure1234",
         }
 
     def test_register_validation_error(self):
-        '''Should return 400 if the schema validation fails'''
-        target = 'app.controllers.user_controllers.UserService.register_user'
-        payload = {
-            'email': self.email,
-            'password': self.password
-        }
+        """Should return 400 if the schema validation fails"""
+        target = "app.controllers.user_controllers.UserService.register_user"
+        payload = {"email": self.email, "password": self.password}
         with patch(target) as mock_register:
-            mock_register.side_effect = ValidationError('validation error')
+            mock_register.side_effect = ValidationError("validation error")
             response = self.client.post(
-                '/register',
-                data=json.dumps(payload),
-                content_type='application/json'
+                "/register", data=json.dumps(payload), content_type="application/json"
             )
 
             # Assertion
             self.assertEqual(response.status_code, 400)
             data = json.loads(response.data)
-            self.assertIn('error', data)
+            self.assertIn("error", data)
 
     def test_register_user_already_exists(self):
-        '''Should return 400 if user already exists'''
-        target = 'app.controllers.user_controllers.UserService.register_user'
+        """Should return 400 if user already exists"""
+        target = "app.controllers.user_controllers.UserService.register_user"
         with patch(target) as mock_register:
-            mock_register.side_effect = UserExistError('user already exists')
+            mock_register.side_effect = UserExistError("user already exists")
             response = self.client.post(
-                '/register',
+                "/register",
                 data=json.dumps(self.payload),
-                content_type='application/json'
+                content_type="application/json",
             )
 
             self.assertEqual(response.status_code, 400)
             data = json.loads(response.data)
-            self.assertIn('user_error', data)
+            self.assertIn("user_error", data)
 
     def test_register_user_success(self):
-        '''Should return 201 when user is successfully registered'''
-        with patch('app.controllers.user_controllers.UserService.register_user') as mock_register, \
-                patch('app.controllers.user_controllers.UserService.store_verification_code') as mock_store, \
-                patch('app.controllers.user_controllers.Helpers.generate_verification_code') as mock_code, \
-                patch('app.controllers.user_controllers.Logger') as mock_log:
+        """Should return 201 when user is successfully registered"""
+        with patch(
+            "app.controllers.user_controllers.UserService.register_user"
+        ) as mock_register, patch(
+            "app.controllers.user_controllers.UserService.store_verification_code"
+        ) as mock_store, patch(
+            "app.controllers.user_controllers.Helpers.generate_verification_code"
+        ) as mock_code, patch(
+            "app.controllers.user_controllers.NotificationService.send_verification_code"
+        ) as mock_notify, patch(
+            "app.controllers.user_controllers.Logger"
+        ) as mock_log:
 
-            mock_register.return_value = {'rows_affected': 1}
+            mock_register.return_value = {"rows_affected": 1}
             mock_store.return_value = True
-            mock_code.return_value = '123456'
+            mock_code.return_value = "123456"
+            mock_notify.return_value = True
 
             response = self.client.post(
-                '/register',
+                "/register",
                 data=json.dumps(self.payload),
-                content_type='application/json')
+                content_type="application/json",
+            )
 
             self.assertEqual(response.status_code, 201)
             data = json.loads(response.data)
-            self.assertIn('msg', data)
-            self.assertEqual(data['msg'], 'user created')
-            self.assertEqual(data['email'], self.payload['email'])
-            self.assertEqual(data['verification_code'], '123456')
+            self.assertIn("msg", data)
+            self.assertIn("user created", data["msg"])
+            self.assertEqual(data["email"], self.payload["email"])
+            self.assertEqual(data["verification_code"], "123456")
             mock_register.assert_called_once()
             mock_store.assert_called_once()
             mock_code.assert_called_once()
+            mock_notify.assert_called_once()
             mock_log.info.assert_any_call(
-                f'Attempting to register user: {self.payload["email"]}')
+                f'Attempting to register user: {self.payload["email"]}'
+            )
