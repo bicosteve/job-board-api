@@ -1,6 +1,7 @@
 import unittest
-from unittest.mock import patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, patch
+
 from app.repositories.applications_repository import (
     ApplicationRepository,
     serialize_application,
@@ -52,7 +53,7 @@ class TestApplicationRepository(unittest.TestCase):
         mock_get_db.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
 
-        result = ApplicationRepository.get_jobs_applications(1, 10, 0)
+        result = ApplicationRepository.get_jobs_applications(1, 10, 0, 1)
         self.assertEqual(result[0]["created_at"], "2025-01-01T00:00:00")
 
     @patch("app.repositories.applications_repository.DB.get_db")
