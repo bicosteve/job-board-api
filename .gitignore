@@ -14,3 +14,11 @@ app/repositories/__pycache__
 app/schemas/__pycache__
 app/services/__pycache__
 app/tests/__pycache__
+deployments/*.tfstate
+deployments/*.tfstate.*
+deployments/crash.log
+deployments/crash.*.log
+deployments/.terraform/
+deployments/*.tfvars
+deployments/*.tfvars.json
+
