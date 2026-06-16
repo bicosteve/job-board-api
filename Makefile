@@ -1,3 +1,5 @@
+# ====== App =====
+
 install:
 	pipenv install -r requirements.txt
 
@@ -7,9 +9,11 @@ activate:
 run:
 	python run.py
 
+# ====== Background Worker =====
 celery:
 	celery -A celery_worker.celery worker --loglevel=info
 
+# ====== Tests =====
 test:
 	python -m unittest discover -s tests
 
@@ -19,6 +23,8 @@ coverage:
 report:
 	coverage report -m
 
+
+# ====== Docker =====
 containers:
 	docker compose --env-file .env.docker up --build -d
 
@@ -27,3 +33,18 @@ container_logs:
 
 stop:
 	docker compose down -v
+
+
+# ====== Terraform =====
+format:
+	cd deployments && terraform fmt
+
+init:
+	cd deployments && terraform init
+
+plan:
+	cd deployments && terraform plan
+
+apply:
+	cd deployments && terraform apply
+

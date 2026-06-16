@@ -17,6 +17,4 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-output "vpc_id" {
-  value = aws_vpc.this.id
-}
+
