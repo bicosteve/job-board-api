@@ -21,4 +21,5 @@ deployments/crash.*.log
 deployments/.terraform/
 deployments/*.tfvars
 deployments/*.tfvars.json
+.vscode
 
