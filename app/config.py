@@ -90,10 +90,13 @@ class BaseConfig:
         port=RABBITMQ_PORT,
         vhost=RABBITMQ_VHOST,
     )
-    CELERY_RESULT_BACKEND = "redis://{redis_host}:{redis_port}/{redis_db}".format(
-        redis_host=REDIS_HOST,
-        redis_port=REDIS_PORT,
-        redis_db=REDIS_DB,
+    CELERY_RESULT_BACKEND = (
+        "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+            redis_password=REDIS_PASSWORD,
+            redis_host=REDIS_HOST,
+            redis_port=REDIS_PORT,
+            redis_db=REDIS_DB,
+        )
     )
 
 
