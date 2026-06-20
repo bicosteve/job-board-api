@@ -34,7 +34,11 @@ class UserRepository:
                 "email": row.get("email"),
                 "hash": row.get("hash"),
                 "status": row.get("status"),
-                "is_deactivated": row.get("is_deactivated") if row.get("is_deactivated") is not None else False,
+                "is_deactivated": (
+                    row.get("is_deactivated")
+                    if row.get("is_deactivated") is not None
+                    else False
+                ),
                 "created_at": str(row.get("created_at")),
             }
             return user
@@ -124,7 +128,8 @@ class UserRepository:
                 cursor.execute(query_two, (email,))
                 update_count = cursor.rowcount
 
-                # 3. Ensure user_setting row: active_status==1 means verified user → not deactivated
+                # 3. Ensure user_setting row: active_status==1 means verified
+                # user → not deactivated
                 is_deactivated = 0 if int(active_status) == 1 else 1
                 query_three = """
                 INSERT INTO user_setting(is_deactivated, user_id)

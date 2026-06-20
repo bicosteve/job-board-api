@@ -1,14 +1,15 @@
 import unittest
 from unittest.mock import patch
+
 from flask import Flask, json
 from flask_restful import Api
 
 # Import your controllers
 from app.controllers.job_controllers import (
-    PostJobController,
-    JobsListController,
     JobObjectController,
+    JobsListController,
     ModifyJobObjectController,
+    PostJobController,
 )
 
 
@@ -21,8 +22,7 @@ class JobControllerTestCase(unittest.TestCase):
         api.add_resource(PostJobController, "/jobs")
         api.add_resource(JobsListController, "/jobs/list")
         api.add_resource(JobObjectController, "/jobs/<int:job_id>")
-        api.add_resource(ModifyJobObjectController,
-                         "/jobs/<int:job_id>/update")
+        api.add_resource(ModifyJobObjectController, "/jobs/<int:job_id>/update")
 
         self.client = self.app.test_client()
 
@@ -37,8 +37,8 @@ class JobControllerTestCase(unittest.TestCase):
                 "deadline": "2025-12-31",
                 "status": "Open",
                 "company_name": "Shade Limited",
-                "application_url": "https://example.com/apply"
-            }
+                "application_url": "https://example.com/apply",
+            },
         }
 
         self.update_payload = {
@@ -51,7 +51,7 @@ class JobControllerTestCase(unittest.TestCase):
             "deadline": "2025-12-31",
             "status": "Open",
             "company_name": "Shade Limited",
-            "application_url": "https://example.com/apply"
+            "application_url": "https://example.com/apply",
         }
 
     @patch("app.controllers.job_controllers.JobService.add_job")
@@ -63,7 +63,7 @@ class JobControllerTestCase(unittest.TestCase):
             "/jobs",
             data=json.dumps(self.payload),
             headers=headers,
-            content_type="application/json"
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 201)
@@ -71,13 +71,11 @@ class JobControllerTestCase(unittest.TestCase):
         self.assertEqual(data["msg"], "job created")
 
     def test_post_job_missing_auth(self):
-        payload = {"title": "QA Engineer",
-                   "details": {"description": "Testing"}}
+        payload = {"title": "QA Engineer", "details": {"description": "Testing"}}
         response = self.client.post(
-            "/jobs",
-            data=json.dumps(self.payload),
-            content_type="application/json"
+            "/jobs", data=json.dumps(payload), content_type="application/json"
         )
+
         self.assertEqual(response.status_code, 401)
         self.assertIn("validation_err", response.get_json())
 
@@ -102,13 +100,12 @@ class JobControllerTestCase(unittest.TestCase):
     def test_put_job_update_success(self, mock_update_job):
         mock_update_job.return_value = {"id": 1, "title": "Updated Job"}
         headers = {"Authorization": "Bearer testtoken"}
-        payload = {"title": "Updated Job"}
 
         response = self.client.put(
             "/jobs/1/update",
             data=json.dumps(self.update_payload),
             headers=headers,
-            content_type="application/json"
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -124,7 +121,7 @@ class JobControllerTestCase(unittest.TestCase):
             "/jobs/1/update",
             data=json.dumps(self.update_payload),
             headers=headers,
-            content_type="application/json"
+            content_type="application/json",
         )
 
         self.assertEqual(response.status_code, 401)

@@ -1,15 +1,19 @@
 import unittest
 from unittest.mock import patch
+
 from app.services.profile_service import ProfileService
-from app.utils.exceptions import GenericDatabaseError, InvalidCredentialsError
+from app.utils.exceptions import GenericDatabaseError
 
 
 class TestProfileService(unittest.TestCase):
 
     def setUp(self):
         self.token = "validtoken"
-        self.payload = {"first_name": "Steve",
-                        "last_name": "Tester", "cv_url": "http://cv"}
+        self.payload = {
+            "first_name": "Steve",
+            "last_name": "Tester",
+            "cv_url": "http://cv",
+        }
 
     # --- create_profile tests ---
     @patch("app.services.profile_service.ProfileRepository.add_profile")
@@ -51,8 +55,7 @@ class TestProfileService(unittest.TestCase):
     @patch("app.services.profile_service.Security.decode_jwt_token")
     def test_get_profile_success(self, mock_decode, mock_get_profile):
         mock_decode.return_value = {"profile_id": 1}
-        mock_get_profile.return_value = {
-            "first_name": "Steve", "last_name": "Tester"}
+        mock_get_profile.return_value = {"first_name": "Steve", "last_name": "Tester"}
 
         profile = ProfileService.get_profile(self.token)
         self.assertEqual(profile["first_name"], "Steve")

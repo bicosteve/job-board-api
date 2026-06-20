@@ -1,5 +1,6 @@
 import uuid
 from pathlib import Path
+
 from werkzeug.utils import secure_filename
 
 from ..utils.logger import Logger

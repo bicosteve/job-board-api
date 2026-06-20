@@ -1,25 +1,23 @@
 from typing import cast
 
-from flask import make_response, jsonify
+from flasgger import swag_from
+from flask import jsonify, make_response
 from flask_restful import Resource, request
 from marshmallow import ValidationError
-from flasgger import swag_from
 
-from ..schemas.admin import (
-    RegisterAdminSchema, LoginAdminSchema,
-    VerifyAdminSchema
-)
-from ..utils.helpers import Helpers
-from ..utils.logger import Logger
+from ..extensions.limiter import auth_limits, limiter
+from ..schemas.admin import LoginAdminSchema, RegisterAdminSchema, VerifyAdminSchema
 from ..services.admin_service import AdminService
 from ..services.notification_service import NotificationService
 from ..utils.exceptions import (
-    UserExistError,
     GenericDatabaseError,
-    UserDoesNotExistError,
     InvalidCredentialsError,
-    InvalidLoginAttemptError
+    InvalidLoginAttemptError,
+    UserDoesNotExistError,
+    UserExistError,
 )
+from ..utils.helpers import Helpers
+from ..utils.logger import Logger
 
 
 class RegisterAdminController(Resource):
@@ -31,7 +29,7 @@ class RegisterAdminController(Resource):
             Logger.info("Validating admin user register payload")
             data = register_schema.load(request.get_json())
             if not isinstance(data, dict):
-                Logger.warn(f"Provided data is not object.")
+                Logger.warn("Provided data is not object.")
                 return {"msg": "Expected an object got None"}, 400
             Logger.info(f"Attempting to register user {data['email']}")
             code = Helpers.generate_verification_code()
@@ -43,12 +41,15 @@ class RegisterAdminController(Resource):
             if res is None:
                 Logger.warn("An error occured while adding admin.")
                 return {"msg": "error adding admin user"}, 500
-            if res['rows'] < 1:
+            if res["rows"] < 1:
                 Logger.warn("Admin not registered")
-                return {'msg': "Admin not registered"}, 500
+                return {"msg": "Admin not registered"}, 500
 
-            if not NotificationService.send_verification_code(data['email'], code, is_admin=True):
-                Logger.warn(f"Email delivery may have failed for admin verification to {data['email']}")
+            if not NotificationService.send_verification_code(
+                data["email"], code, is_admin=True
+            ):
+                Logger.warn(f"Email delivery may have failed for admin verification to {
+                        data['email']}")
 
             return {"msg": "Admin created", "verification_code": code}, 201
         except ValidationError as e:
@@ -56,23 +57,25 @@ class RegisterAdminController(Resource):
         except UserExistError as e:
             return {"error": f"{str(e)}"}, 409
         except GenericDatabaseError as e:
-            return {"error": f'{str(e)}'}, 500
+            return {"error": f"{str(e)}"}, 500
 
 
 class LoginAdminController(Resource):
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/login_admin.yml")
     def post(self):
+
         try:
             login_schema = LoginAdminSchema()
             Logger.info("Validating login admin user payload")
             data = cast(dict[str, str], login_schema.load(request.get_json()))
 
-            admin = AdminService.get_admin_user(
-                data["email"], data["password"])
+            admin = AdminService.get_admin_user(data["email"], data["password"])
 
             if not isinstance(admin, dict):
-                Logger.warn(f"Problem with getting admin user")
+                Logger.warn("Problem with getting admin user")
                 return {"error": "The problem with getting user"}, 500
 
             response = make_response(jsonify(admin), 200)
@@ -93,8 +96,11 @@ class LoginAdminController(Resource):
 
 class VerifyAdminAccountController(Resource):
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/verify_admin_account.yml")
     def post(self):
+
         try:
             verify_schema = VerifyAdminSchema()
             data = verify_schema.load(request.get_json())
@@ -104,13 +110,12 @@ class VerifyAdminAccountController(Resource):
             obj = {
                 "email": data["email"],
                 "active_status": 1,
-                "verification_code": data["verification_code"]
+                "verification_code": data["verification_code"],
             }
 
             res = AdminService.verify_admin_user(obj)
             if res is None:
-                Logger.warn(
-                    f"An error occurred while verifiying {data['email']}")
+                Logger.warn(f"An error occurred while verifiying {data['email']}")
                 return {"error": "An error occurred during verification"}, 500
 
             return {"msg": "account verified"}, 200

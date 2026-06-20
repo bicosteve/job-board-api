@@ -10,7 +10,7 @@ from .config import DevelopmentConfig, DockerConfig, ProductionConfig
 from .db.db import DB
 from .db.redis import Cache
 from .extensions.celery import celery
-from .extensions.celery import celery as celery_ext
+from .extensions.limiter import init_limiter
 from .queues.queue import RabbitMQ
 
 # from .routes import register_routes
@@ -38,6 +38,9 @@ def create_app():
 
     # Enable cross origin requests
     CORS(app)
+
+    # Rate limiting (Redis-backed) for sensitive auth endpoints
+    init_limiter(app)
 
     init_dependencies(app)
 

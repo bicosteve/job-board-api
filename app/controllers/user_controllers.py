@@ -7,6 +7,7 @@ from flask_restful import Resource, request
 from jwt import ExpiredSignatureError, InvalidTokenError
 from marshmallow import ValidationError
 
+from ..extensions.limiter import auth_limits, limiter
 from ..schemas.user import (
     LoginSchema,
     RegisterSchema,
@@ -115,8 +116,11 @@ class RegisterUserController(Resource):
 class LoginUserController(Resource):
     login_schema = LoginSchema()
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/login_user.yml")
     def post(self):
+
         try:
             data = LoginUserController.login_schema.load(request.get_json())
         except ValidationError as e:
@@ -203,8 +207,11 @@ class UserProfileController(Resource):
 class VerifyUserAccountController(Resource):
     verify_account_schema = VerifyAccountSchema()
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/verify_user_account.yml")
     def post(self):
+
         try:
             data = VerifyUserAccountController.verify_account_schema.load(
                 request.get_json()
@@ -239,8 +246,11 @@ class VerifyUserAccountController(Resource):
 class RequestUserPasswordResetController(Resource):
     request_reset_password_schema = RequestResetPasswordSchema()
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/request_user_reset_code.yml")
     def post(self):
+
         try:
             data = (
                 RequestUserPasswordResetController.request_reset_password_schema.load(
@@ -275,8 +285,11 @@ class RequestUserPasswordResetController(Resource):
 class ResetUserPasswordController(Resource):
     reset_password_schema = ResetPasswordSchema()
 
+    decorators = [limiter.limit(auth_limits)]
+
     @swag_from("../docs/user_password_reset.yml")
     def post(self):
+
         token = str(request.args.get("token"))
         if len(token) < 1 or None:
             Logger.warn("No reset token provided in the request")
