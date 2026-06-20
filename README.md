@@ -22,7 +22,7 @@
 
 ---
 
-This project is a complete, deployed hiring marketplace. It covers the 
+This project is a complete, deployed hiring marketplace. It covers the
 full surface area of a real production service: secure auth, real-time data streams, a typed frontend, containerised infrastructure, and a comprehensive test suite.
 
 ---
@@ -89,6 +89,7 @@ These are the choices that required trade-off thinking, not just implementation:
 ## Feature summary
 
 ### Candidate flows
+
 - Registration with email verification (JWT-based)
 - Profile and education history management
 - Public job board: browse and view listings
@@ -97,6 +98,7 @@ These are the choices that required trade-off thinking, not just implementation:
 - Self-service password reset (rate-limited: one request per 5 minutes)
 
 ### Admin flows
+
 - Separate registration and verification flow
 - Job creation, editing, and listing
 - Per-job application views
@@ -104,9 +106,13 @@ These are the choices that required trade-off thinking, not just implementation:
 - Application status updates
 
 ### Operational features
+
 - Live Swagger UI: `GET /apidocs`
 - Health probe: `GET /v0/api/health/check`
 - Gunicorn WSGI for production
+- Multi-stage production Docker image
+- GitHub Actions pipeline for lint, test, image build, and Docker Hub push
+- Redis-backed rate limiting for sensitive auth flows
 - Environment-driven config: `dev` / `prod` / `docker`
 
 ---
@@ -115,25 +121,25 @@ These are the choices that required trade-off thinking, not just implementation:
 
 All endpoints are versioned under `/v0/api` and documented interactively at `/apidocs`.
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `GET` | `/health/check` | Liveness probe |
-| `POST` | `/user/register` | Candidate signup |
-| `POST` | `/user/verify` | Email verification |
-| `POST` | `/user/login` | JWT issuance |
-| `GET` | `/user/me` | Authenticated profile |
-| `POST` | `/user/request-reset` | Rate-limited reset code |
-| `POST` | `/user/reset-password` | Password reset |
-| `POST/GET` | `/profile/create` · `/profile/get` | Profile CRUD |
-| `POST` | `/education/create` | Education record |
-| `POST/POST/POST` | `/admin/register` · `/admin/login` · `/admin/verify` | Admin auth |
-| `POST/GET/PUT` | `/admin/jobs/create` · `/list` · `/<id>` | Job management |
-| `GET/GET` | `/public/jobs` · `/public/jobs/<id>` | Public listings |
-| `POST/GET` | `/applications/job/create` · `/list` | Apply and list |
-| `GET/GET` | `/applications/user/stream` · `/admin/stream` | **SSE streams** |
-| `GET/GET` | `/applications/user/list` · `/job/<id>` | Filtered views |
-| `PUT` | `/applications/job/update/<id>` | Status update |
-| `POST` | `/files/upload` | Resume upload |
+| Method           | Endpoint                                             | Purpose                 |
+| ---------------- | ---------------------------------------------------- | ----------------------- |
+| `GET`            | `/health/check`                                      | Liveness probe          |
+| `POST`           | `/user/register`                                     | Candidate signup        |
+| `POST`           | `/user/verify`                                       | Email verification      |
+| `POST`           | `/user/login`                                        | JWT issuance            |
+| `GET`            | `/user/me`                                           | Authenticated profile   |
+| `POST`           | `/user/request-reset`                                | Rate-limited reset code |
+| `POST`           | `/user/reset-password`                               | Password reset          |
+| `POST/GET`       | `/profile/create` · `/profile/get`                   | Profile CRUD            |
+| `POST`           | `/education/create`                                  | Education record        |
+| `POST/POST/POST` | `/admin/register` · `/admin/login` · `/admin/verify` | Admin auth              |
+| `POST/GET/PUT`   | `/admin/jobs/create` · `/list` · `/<id>`             | Job management          |
+| `GET/GET`        | `/public/jobs` · `/public/jobs/<id>`                 | Public listings         |
+| `POST/GET`       | `/applications/job/create` · `/list`                 | Apply and list          |
+| `GET/GET`        | `/applications/user/stream` · `/admin/stream`        | **SSE streams**         |
+| `GET/GET`        | `/applications/user/list` · `/job/<id>`              | Filtered views          |
+| `PUT`            | `/applications/job/update/<id>`                      | Status update           |
+| `POST`           | `/files/upload`                                      | Resume upload           |
 
 ---
 
@@ -156,7 +162,9 @@ job-board-api/
 ├── tables/                    # Ordered SQL schema files (01–08)
 ├── tests/                     # unittest: controllers, services, repos
 ├── docker-compose.yml
-├── Dockerfile
+├── Dockerfile                 # production multi-stage image
+├── .dockerignore              # excludes secrets, tests, frontend, dev artifacts
+├── .github/workflows/ci.yml   # lint, tests, build_image, push_image
 ├── Pipfile / requirements.txt
 ├── Makefile                   # run / test / coverage / containers
 └── .pre-commit-config.yml     # autopep8 + flake8
@@ -177,7 +185,7 @@ python run.py
 # Visit http://localhost:5005/apidocs
 ```
 
-### Docker (recommended)
+### Docker (recommended for local stack)
 
 ```bash
 cp .env.docker.example .env.docker
@@ -186,6 +194,31 @@ make container_logs  # Tail logs
 ```
 
 MySQL and Redis healthchecks run before the app starts. No manual sequencing needed.
+
+### Production image
+
+Build the production image locally:
+
+```bash
+docker build -f Dockerfile -t job-board-api:prod .
+```
+
+Run it with production-style settings:
+
+```bash
+docker run --rm -p 5005:5005 \
+  -e ENV=prod \
+  -e PORT=5005 \
+  job-board-api:prod
+```
+
+The production image is a multi-stage build that:
+
+- compiles dependency wheels in a builder stage
+- installs only runtime dependencies in the final image
+- runs as a non-root user
+- serves the app with `gunicorn`
+- exposes a healthcheck against `/v0/api/health/check`
 
 ### Frontend
 
@@ -206,7 +239,15 @@ make coverage   # coverage run
 make report     # coverage report -m
 ```
 
-Tests cover controllers, services, repositories, helpers, and security utilities — the same surfaces that go to production. Pre-commit hooks run `autopep8` (line length 79) and `flake8` on every commit. `black` is pinned for consistent formatting.
+Tests cover controllers, services, repositories, helpers, and security utilities — the same surfaces that go to production.
+
+Formatting and linting are configured so the tools agree with each other:
+
+- `black` is pinned for consistent formatting
+- `flake8` is aligned to an 88-character line length
+- `autopep8` is configured to the same 88-character limit for CI consistency
+
+This avoids formatter-vs-linter conflicts during local development and in GitHub Actions.
 
 ---
 
@@ -226,13 +267,34 @@ Tests cover controllers, services, repositories, helpers, and security utilities
 - `RENDER_EXTERNAL_HOSTNAME` and `FRONTEND_URL` are wired for Render, Railway, and Fly.io
 - CORS origin, request size limit, and upload folder are all environment-driven
 - Gunicorn is pinned in dependencies — no additional WSGI setup needed
+- `Flask-Limiter` is enabled with Redis-backed storage for sensitive auth endpoints
+- `packaging==24.2` is pinned to remain compatible with `limits==3.13.0`
+
+### GitHub Actions container pipeline
+
+The repository includes a CI workflow at `.github/workflows/ci.yml` with these stages:
+
+1. **lint** — runs formatting and flake8 checks
+2. **test** — runs the unittest suite and coverage gate
+3. **build_image** — builds the production Docker image and stores it as a workflow artifact
+4. **push_image** — pushes the built image to Docker Hub on pushes to `main`
+
+Required Docker Hub secrets:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+The published image name is derived from:
+
+```yaml
+IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/job-board-api
+```
 
 ---
 
 ## Contact
 
-**Steve Bico** · [github.com/bicosteve](https://github.com/bicosteve) · 
+**Steve Bico** · [github.com/bicosteve](https://github.com/bicosteve) ·
 [LinkedIn](https://www.linkedin.com/in/bico-steve/) · [Email](bicosteve4@gmail.com)
-
 
 ---
