@@ -25,10 +25,7 @@ def _friendly_status(status: int) -> str:
 
 class NotificationService:
     @staticmethod
-    def send_verification_code(
-            email: str,
-            code: str,
-            is_admin: bool = False) -> bool:
+    def send_verification_code(email: str, code: str, is_admin: bool = False) -> bool:
         role = "Employer" if is_admin else "Candidate"
         subject = _subject(role, "Verify your account")
         body = (
@@ -108,10 +105,8 @@ class NotificationService:
 
     @staticmethod
     def notify_applicant_status_change(
-            email: str,
-            job_title: str,
-            status: int,
-            company_name: Optional[str] = None) -> bool:
+        email: str, job_title: str, status: int, company_name: Optional[str] = None
+    ) -> bool:
         status_label = _friendly_status(status)
         company_label = f" at {company_name}" if company_name else ""
         subject = _subject("Candidate", "Application status updated")

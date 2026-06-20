@@ -35,10 +35,8 @@ class BaseConfig:
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
     # Rate limiting
-    RATELIMIT_ENABLED = os.getenv(
-        "RATELIMIT_ENABLED", "true").lower() == "true"
-    RATELIMIT_FAIL_OPEN = os.getenv(
-        "RATELIMIT_FAIL_OPEN", "true").lower() == "true"
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
+    RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
     RATELIMIT_STRATEGY = os.getenv("RATELIMIT_STRATEGY", "fixed-window")
     _REDIS_AUTH = f":{REDIS_PASSWORD}@" if REDIS_PASSWORD else ""
     RATELIMIT_STORAGE_URI = os.getenv(
@@ -47,8 +45,7 @@ class BaseConfig:
     )
 
     AUTH_LIMIT_PER_MINUTE = os.getenv("AUTH_LIMIT_PER_MINUTE", "5 per minute")
-    AUTH_LIMIT_PER_5_MINUTES = os.getenv(
-        "AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
+    AUTH_LIMIT_PER_5_MINUTES = os.getenv("AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
     AUTH_LIMIT_PER_10_MINUTES = os.getenv(
         "AUTH_LIMIT_PER_10_MINUTES", "20 per 10 minutes"
     )
@@ -94,7 +91,10 @@ class BaseConfig:
         vhost=RABBITMQ_VHOST,
     )
     CELERY_RESULT_BACKEND = "redis://{redis_host}:{redis_port}/{redis_db}".format(
-        redis_host=REDIS_HOST, redis_port=REDIS_PORT, redis_db=REDIS_DB, )
+        redis_host=REDIS_HOST,
+        redis_port=REDIS_PORT,
+        redis_db=REDIS_DB,
+    )
 
 
 class DevelopmentConfig(BaseConfig):

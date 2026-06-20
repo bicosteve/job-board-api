@@ -7,7 +7,7 @@ from ..utils.logger import Logger
 
 
 class AdminRepository:
-    '''Has methods to perform repo operation for admin user'''
+    """Has methods to perform repo operation for admin user"""
 
     @staticmethod
     def find_admin_by_email(email: str) -> dict | None:
@@ -43,7 +43,11 @@ class AdminRepository:
                     "username": row.get("username"),
                     "password_hash": row.get("hash"),
                     "created_at": row.get("created_at"),
-                    "is_deactivated": row.get("is_deactivated") if row.get("is_deactivated") is not None else False
+                    "is_deactivated": (
+                        row.get("is_deactivated")
+                        if row.get("is_deactivated") is not None
+                        else False
+                    ),
                 }
 
                 return admin
@@ -74,7 +78,7 @@ class AdminRepository:
                 "email": row.get("email"),
                 "username": row.get("username"),
                 "created_at": str(row.get("created_at")),
-                "updated_at": str(row.get("updated_at"))
+                "updated_at": str(row.get("updated_at")),
             }
 
             return admin
@@ -98,10 +102,8 @@ class AdminRepository:
                 """.strip()
 
                 cursor.execute(
-                    query,
-                    (data['email'],
-                     data['username'],
-                        data['password_hash']))
+                    query, (data["email"], data["username"], data["password_hash"])
+                )
                 conn.commit()
 
                 return cursor.rowcount

@@ -72,8 +72,7 @@ class TestNotificationService(unittest.TestCase):
     # ---------- send_password_reset ----------
     def test_send_password_reset_includes_reset_url(self):
         """Password reset email contains a reset URL with the token."""
-        result = NotificationService.send_password_reset(
-            self.email, self.token)
+        result = NotificationService.send_password_reset(self.email, self.token)
 
         self.assertTrue(result)
         self.mock_mail_task.delay.assert_called_once()
@@ -161,8 +160,7 @@ class TestNotificationService(unittest.TestCase):
                 self.email, self.code, is_admin=True
             )
         )
-        self.assertTrue(NotificationService.send_password_reset(
-            self.email, self.token))
+        self.assertTrue(NotificationService.send_password_reset(self.email, self.token))
         self.assertTrue(
             NotificationService.notify_applicant_of_submission(
                 self.email, self.job_title, self.company_name

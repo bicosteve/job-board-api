@@ -173,8 +173,7 @@ class TestBaseCache(unittest.TestCase):
             mock_client.get.return_value = payload
             mock_connect.return_value = mock_client
 
-            result = BaseCache.retrieve_reset_token(
-                self.email, "different-token")
+            result = BaseCache.retrieve_reset_token(self.email, "different-token")
 
             self.assertIsNone(result)
             mock_client.delete.assert_not_called()

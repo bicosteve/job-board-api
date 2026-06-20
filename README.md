@@ -99,6 +99,8 @@ These are the choices that required trade-off thinking, not just implementation:
 
 ### Admin flows
 
+### Admin flows
+
 - Separate registration and verification flow
 - Job creation, editing, and listing
 - Per-job application views

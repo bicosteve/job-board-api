@@ -10,8 +10,7 @@ class TestJobService(unittest.TestCase):
     @patch("app.services.job_service.JobRepository.insert_job")
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_add_job_success(self, mock_decode, mock_insert):
-        mock_decode.return_value = {
-            "profile_id": 1, "email": "admin@example.com"}
+        mock_decode.return_value = {"profile_id": 1, "email": "admin@example.com"}
         mock_insert.return_value = 10
 
         data = {
@@ -26,9 +25,7 @@ class TestJobService(unittest.TestCase):
 
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_add_job_invalid_token(self, mock_decode):
-        mock_decode.return_value = {
-            "profile_id": None,
-            "email": "admin@example.com"}
+        mock_decode.return_value = {"profile_id": None, "email": "admin@example.com"}
         data = {
             "title": "QA Engineer",
             "description": "Testing APIs",
@@ -41,8 +38,7 @@ class TestJobService(unittest.TestCase):
     @patch("app.services.job_service.JobRepository.insert_job")
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_add_job_insert_failure(self, mock_decode, mock_insert):
-        mock_decode.return_value = {
-            "profile_id": 1, "email": "admin@example.com"}
+        mock_decode.return_value = {"profile_id": 1, "email": "admin@example.com"}
         mock_insert.return_value = None
         data = {
             "title": "QA Engineer",
@@ -72,34 +68,24 @@ class TestJobService(unittest.TestCase):
     @patch("app.services.job_service.JobRepository.update_job")
     @patch("app.services.job_service.JobRepository.get_job")
     @patch("app.services.job_service.Security.decode_jwt_token")
-    def test_update_job_success(
-            self,
-            mock_decode,
-            mock_get_job,
-            mock_update_job):
-        mock_decode.return_value = {
-            "profile_id": 1, "email": "admin@example.com"}
+    def test_update_job_success(self, mock_decode, mock_get_job, mock_update_job):
+        mock_decode.return_value = {"profile_id": 1, "email": "admin@example.com"}
         mock_update_job.return_value = 1
         mock_get_job.return_value = {"id": 1, "title": "Updated Job"}
 
-        result = JobService.update_job(
-            1, "validtoken", {
-                "title": "Updated Job"})
+        result = JobService.update_job(1, "validtoken", {"title": "Updated Job"})
         self.assertEqual(result["title"], "Updated Job")
 
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_update_job_invalid_token(self, mock_decode):
-        mock_decode.return_value = {
-            "profile_id": None,
-            "email": "admin@example.com"}
+        mock_decode.return_value = {"profile_id": None, "email": "admin@example.com"}
         with self.assertRaises(GenericDatabaseError):
             JobService.update_job(1, "badtoken", {"title": "Updated Job"})
 
     @patch("app.services.job_service.JobRepository.update_job")
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_update_job_not_found(self, mock_decode, mock_update_job):
-        mock_decode.return_value = {
-            "profile_id": 1, "email": "admin@example.com"}
+        mock_decode.return_value = {"profile_id": 1, "email": "admin@example.com"}
         mock_update_job.return_value = 0
 
         with self.assertRaises(GenericDatabaseError):

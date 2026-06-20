@@ -1,5 +1,6 @@
 import uuid
 from pathlib import Path
+
 from werkzeug.utils import secure_filename
 
 from ..utils.logger import Logger
@@ -23,8 +24,7 @@ class FileService:
 
         if not FileService.is_allowed_file(filename):
             Logger.warn(f"Unsupported file type for upload: {filename}")
-            raise ValueError(
-                "Unsupported file type. Allowed: pdf, doc, docx, txt")
+            raise ValueError("Unsupported file type. Allowed: pdf, doc, docx, txt")
 
         upload_path = Path(upload_folder)
         upload_path.mkdir(parents=True, exist_ok=True)

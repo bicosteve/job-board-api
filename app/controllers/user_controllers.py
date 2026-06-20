@@ -59,8 +59,7 @@ class RegisterUserController(Resource):
             elif isinstance(json_data, dict):
                 data = RegisterUserController.register_schema.load(json_data)
             else:
-                raise ValueError(
-                    f"Expected JSON object, got {type(json_data)}")
+                raise ValueError(f"Expected JSON object, got {type(json_data)}")
         except ValidationError as e:
             Logger.warn(f"Validation failed during registration {str(e)}")
             return {"error": str(e)}, 400
@@ -89,7 +88,8 @@ class RegisterUserController(Resource):
                 email, code, is_admin=False
             ):
                 Logger.warn(
-                    f"Email delivery may have failed for verification email to {email}")
+                    f"Email delivery may have failed for verification email to {email}"
+                )
 
             Logger.info(f"User registered successfully: {email}")
             return {
@@ -103,8 +103,7 @@ class RegisterUserController(Resource):
             return {"user_error": str(e)}, 400
 
         except GenericDatabaseError as e:
-            Logger.error(
-                f"Database error during registration for {email}-{str(e)}")
+            Logger.error(f"Database error during registration for {email}-{str(e)}")
             return {"db_error": str(e)}, 500
 
         except Exception as e:
@@ -255,7 +254,9 @@ class RequestUserPasswordResetController(Resource):
         try:
             data = (
                 RequestUserPasswordResetController.request_reset_password_schema.load(
-                    request.get_json()))
+                    request.get_json()
+                )
+            )
         except ValidationError as e:
             Logger.warn(f"Error while validating payload {str(e)}")
             return {"validation_error": str(e)}, 400
@@ -269,11 +270,9 @@ class RequestUserPasswordResetController(Resource):
             token_data = UserService.store_reset_token(email)
             if not token_data:
                 Logger.warn("An error occurred while storing reset token")
-                return {
-                    "error": "An error occurred while storing reset token"}, 500
+                return {"error": "An error occurred while storing reset token"}, 500
 
-            NotificationService.send_password_reset(
-                email, token_data.get("token", ""))
+            NotificationService.send_password_reset(email, token_data.get("token", ""))
             return {
                 "data": token_data,
                 "msg": "Check inbox/spam for verification code",

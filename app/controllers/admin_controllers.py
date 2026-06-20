@@ -48,8 +48,7 @@ class RegisterAdminController(Resource):
             if not NotificationService.send_verification_code(
                 data["email"], code, is_admin=True
             ):
-                Logger.warn(
-                    f"Email delivery may have failed for admin verification to {
+                Logger.warn(f"Email delivery may have failed for admin verification to {
                         data['email']}")
 
             return {"msg": "Admin created", "verification_code": code}, 201
@@ -73,8 +72,7 @@ class LoginAdminController(Resource):
             Logger.info("Validating login admin user payload")
             data = cast(dict[str, str], login_schema.load(request.get_json()))
 
-            admin = AdminService.get_admin_user(
-                data["email"], data["password"])
+            admin = AdminService.get_admin_user(data["email"], data["password"])
 
             if not isinstance(admin, dict):
                 Logger.warn("Problem with getting admin user")
@@ -117,8 +115,7 @@ class VerifyAdminAccountController(Resource):
 
             res = AdminService.verify_admin_user(obj)
             if res is None:
-                Logger.warn(
-                    f"An error occurred while verifiying {data['email']}")
+                Logger.warn(f"An error occurred while verifiying {data['email']}")
                 return {"error": "An error occurred during verification"}, 500
 
             return {"msg": "account verified"}, 200

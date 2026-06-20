@@ -1,8 +1,6 @@
 # syntax=docker/dockerfile:1
 
-###############################################################################
 # Stage 1: builder - compile wheels for all python dependencies
-###############################################################################
 FROM python:3.12-slim AS builder
 
 WORKDIR /app
@@ -20,9 +18,9 @@ RUN pip install --upgrade pip \
     && pip wheel --no-cache-dir --wheel-dir /wheels -r requirements.txt
 
 
-###############################################################################
+
 # Stage 2: runtime - minimal image that only contains what is needed to run
-###############################################################################
+
 FROM python:3.12-slim AS runtime
 
 # Build-time args

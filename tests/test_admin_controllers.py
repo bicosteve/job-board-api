@@ -83,8 +83,7 @@ class TestAdminControllers(unittest.TestCase):
     @patch("app.controllers.admin_controllers.LoginAdminSchema.load")
     @patch("app.controllers.admin_controllers.AdminService.get_admin_user")
     def test_login_admin_success(self, mock_get_admin, mock_load):
-        mock_load.return_value = {
-            "email": self.email, "password": self.password}
+        mock_load.return_value = {"email": self.email, "password": self.password}
         mock_get_admin.return_value = {
             "id": 1,
             "email": self.email,
@@ -100,8 +99,7 @@ class TestAdminControllers(unittest.TestCase):
         return_value=None,
     )
     def test_login_admin_service_none(self, mock_get_admin, mock_load):
-        mock_load.return_value = {
-            "email": self.email, "password": self.password}
+        mock_load.return_value = {"email": self.email, "password": self.password}
         res = self.client.post("/login", json=self.payload)
         self.assertEqual(res.status_code, 500)
         self.assertIn("error", res.get_json())
@@ -120,8 +118,7 @@ class TestAdminControllers(unittest.TestCase):
         side_effect=InvalidCredentialsError("bad creds"),
     )
     def test_login_admin_invalid_credentials(self, mock_get_admin, mock_load):
-        mock_load.return_value = {
-            "email": self.email, "password": self.password}
+        mock_load.return_value = {"email": self.email, "password": self.password}
         res = self.client.post("/login", json=self.payload)
         self.assertEqual(res.status_code, 401)
 
@@ -129,14 +126,11 @@ class TestAdminControllers(unittest.TestCase):
     @patch("app.controllers.admin_controllers.VerifyAdminSchema.load")
     @patch("app.controllers.admin_controllers.AdminService.verify_admin_user")
     def test_verify_admin_success(self, mock_verify, mock_load):
-        mock_load.return_value = {
-            "email": self.email, "verification_code": "123456"}
+        mock_load.return_value = {"email": self.email, "verification_code": "123456"}
         mock_verify.return_value = {"rows": 1}
         res = self.client.post(
-            "/verify",
-            json={
-                "email": self.email,
-                "verification_code": "123456"})
+            "/verify", json={"email": self.email, "verification_code": "123456"}
+        )
         self.assertEqual(res.status_code, 200)
         self.assertEqual(res.get_json()["msg"], "account verified")
 
@@ -146,13 +140,10 @@ class TestAdminControllers(unittest.TestCase):
         return_value=None,
     )
     def test_verify_admin_service_none(self, mock_verify, mock_load):
-        mock_load.return_value = {
-            "email": self.email, "verification_code": "123456"}
+        mock_load.return_value = {"email": self.email, "verification_code": "123456"}
         res = self.client.post(
-            "/verify",
-            json={
-                "email": self.email,
-                "verification_code": "123456"})
+            "/verify", json={"email": self.email, "verification_code": "123456"}
+        )
         self.assertEqual(res.status_code, 500)
 
     @patch(
@@ -161,8 +152,6 @@ class TestAdminControllers(unittest.TestCase):
     )
     def test_verify_admin_validation_error(self, mock_load):
         res = self.client.post(
-            "/verify",
-            json={
-                "email": self.email,
-                "verification_code": "123456"})
+            "/verify", json={"email": self.email, "verification_code": "123456"}
+        )
         self.assertEqual(res.status_code, 400)

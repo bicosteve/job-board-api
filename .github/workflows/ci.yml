@@ -3,7 +3,6 @@ name: Lint, test, build image, and push image to Docker Hub
 on:
   push:
     branches:
-      - main
       - "feat/*"
       - "fix/*"
 

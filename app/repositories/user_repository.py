@@ -34,9 +34,12 @@ class UserRepository:
                 "email": row.get("email"),
                 "hash": row.get("hash"),
                 "status": row.get("status"),
-                "is_deactivated": row.get("is_deactivated") if row.get("is_deactivated") is not None else False,
-                "created_at": str(
-                    row.get("created_at")),
+                "is_deactivated": (
+                    row.get("is_deactivated")
+                    if row.get("is_deactivated") is not None
+                    else False
+                ),
+                "created_at": str(row.get("created_at")),
             }
             return user
         except pymysql.MySQLError as e:

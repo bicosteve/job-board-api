@@ -67,8 +67,7 @@ class TestUserRepository(unittest.TestCase):
         email = "error@example.com"
 
         with patch("app.repositories.user_repository.DB.get_db") as mock_get_db:
-            mock_get_db.side_effect = pymysql.MySQLError(
-                "DB connection failed")
+            mock_get_db.side_effect = pymysql.MySQLError("DB connection failed")
 
             with self.assertRaises(GenericDatabaseError):
                 UserRepository.find_user_by_mail(email)
@@ -156,8 +155,7 @@ class TestUserRepository(unittest.TestCase):
     def test_find_user_by_id_mysql_error(self):
         """Should raise GenericDatabaseError on pymysql failure."""
         with patch("app.repositories.user_repository.DB.get_db") as mock_get_db:
-            mock_get_db.side_effect = pymysql.MySQLError(
-                "DB connection failed")
+            mock_get_db.side_effect = pymysql.MySQLError("DB connection failed")
 
             with self.assertRaises(GenericDatabaseError):
                 UserRepository.find_user_by_id(1)
@@ -291,8 +289,7 @@ class TestUserRepository(unittest.TestCase):
             mock_conn.cursor.return_value = mock_cursor
             mock_get_db.return_value = mock_conn
 
-            result = UserRepository.update_user_status(
-                "missing@example.com", 1)
+            result = UserRepository.update_user_status("missing@example.com", 1)
 
             self.assertEqual(result, 0)
             mock_conn.commit.assert_not_called()
@@ -335,8 +332,7 @@ class TestUserRepository(unittest.TestCase):
             mock_conn.cursor.return_value = mock_cursor
             mock_get_db.return_value = mock_conn
 
-            result = UserRepository.store_reset_token(
-                "test@example.com", "token123")
+            result = UserRepository.store_reset_token("test@example.com", "token123")
 
             self.assertEqual(result, 1)
             mock_conn.commit.assert_called_once()
@@ -436,8 +432,7 @@ class TestUserRepository(unittest.TestCase):
             mock_conn.cursor.return_value = mock_cursor
             mock_get_db.return_value = mock_conn
 
-            result = UserRepository.update_password(
-                "test@example.com", "newhash")
+            result = UserRepository.update_password("test@example.com", "newhash")
 
             self.assertEqual(result, 1)
             mock_conn.commit.assert_called_once()

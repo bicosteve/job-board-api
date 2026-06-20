@@ -1,6 +1,6 @@
 import unittest
-from unittest.mock import patch
 from datetime import datetime
+from unittest.mock import patch
 
 from app.services.user_service import UserService
 from app.utils.exceptions import (
@@ -51,8 +51,7 @@ class TestUserService(unittest.TestCase):
         mock_user_repo.assert_called_once_with(self.user_id)
 
     @patch("app.services.user_service.UserRepository.find_user_by_id")
-    def test_get_user_profile_raises_error_when_user_not_found(
-            self, mock_user_repo):
+    def test_get_user_profile_raises_error_when_user_not_found(self, mock_user_repo):
         # Arrange
         mock_user_repo.return_value = None
 
@@ -60,14 +59,12 @@ class TestUserService(unittest.TestCase):
         with self.assertRaises(GenericDatabaseError) as context:
             UserService.get_user_profile(999)
 
-        self.assertIn("error occurred while finding user",
-                      str(context.exception))
+        self.assertIn("error occurred while finding user", str(context.exception))
         mock_user_repo.assert_called_once_with(999)
 
     @patch("app.services.user_service.Security.check_password", return_value=True)
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
-    def test_get_user_returns_success(
-            self, mock_user_repo, mock_check_password):
+    def test_get_user_returns_success(self, mock_user_repo, mock_check_password):
         """User exists, verified, and password matches"""
         user_data = {
             "user_id": self.user_id,
@@ -75,7 +72,7 @@ class TestUserService(unittest.TestCase):
             "hash": self.hash,
             "status": self.status,
             "is_deactivated": self.is_deactivated,
-            "created_at": self.created_at
+            "created_at": self.created_at,
         }
 
         mock_user_repo.return_value = user_data
@@ -84,20 +81,19 @@ class TestUserService(unittest.TestCase):
 
         self.assertEqual(user["email"], self.email)
         mock_user_repo.assert_called_once_with(self.email)
-        mock_check_password.assert_called_once_with(
-            self.password, self.hash)
+        mock_check_password.assert_called_once_with(self.password, self.hash)
 
     @patch("app.services.user_service.Logger.warn")
-    @patch("app.services.user_service.UserRepository.find_user_by_mail",
-           return_value=None)
+    @patch(
+        "app.services.user_service.UserRepository.find_user_by_mail", return_value=None
+    )
     def test_get_user_not_found(self, mock_find_user, mock_warn):
         """User not found"""
         with self.assertRaises(InvalidCredentialsError) as context:
             UserService.get_user(self.email, self.password)
 
         self.assertIn("Invalid email", str(context.exception))
-        mock_warn.assert_called_once_with(
-            f"user not found for email {self.email}")
+        mock_warn.assert_called_once_with(f"user not found for email {self.email}")
 
     @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.UserRepository.find_user_by_mail")
@@ -117,8 +113,7 @@ class TestUserService(unittest.TestCase):
             UserService.get_user(self.email, self.password)
 
         self.assertIn("not verified", str(ctx.exception))
-        mock_warn.assert_called_once_with(
-            f"user not verified for {self.email}")
+        mock_warn.assert_called_once_with(f"user not verified for {self.email}")
 
     @patch("app.services.user_service.Logger.warn")
     @patch("app.services.user_service.Security.check_password", return_value=False)
@@ -132,7 +127,7 @@ class TestUserService(unittest.TestCase):
             "hash": self.hash,
             "status": self.status,
             "is_deactivated": self.is_deactivated,
-            "created_at": self.created_at
+            "created_at": self.created_at,
         }
 
         mock_find_user.return_value = user_data
@@ -141,8 +136,7 @@ class TestUserService(unittest.TestCase):
             UserService.get_user(self.email, "wrongpass")
 
         self.assertIn("Invalid email or password", str(ctx.exception))
-        mock_warn.assert_called_once_with(
-            f"Invalid password for user {self.email}")
+        mock_warn.assert_called_once_with(f"Invalid password for user {self.email}")
         mock_check_password.assert_called_once_with("wrongpass", self.hash)
 
     @patch("app.services.user_service.Logger.warn")
@@ -177,8 +171,7 @@ class TestUserService(unittest.TestCase):
         with self.assertRaises(UserExistError):
             UserService.register_user("Doe", self.email, self.password)
 
-        mock_warn.assert_called_once_with(
-            f"User already exist for email {self.email}")
+        mock_warn.assert_called_once_with(f"User already exist for email {self.email}")
 
     @patch("app.services.user_service.BaseCache.store_verification_code")
     def test_store_user_verification_code(self, mock_store_code):
@@ -207,8 +200,9 @@ class TestUserService(unittest.TestCase):
         mock_store_code.assert_called_once_with(self.email, self.code)
         self.assertFalse(result)
 
-    @patch("app.services.user_service.UserRepository.update_user_status",
-           return_value=1)
+    @patch(
+        "app.services.user_service.UserRepository.update_user_status", return_value=1
+    )
     @patch("app.services.user_service.BaseCache.verify_code", return_value=True)
     def test_verify_account_success_with_db_update(
         self, mock_verify_code, mock_update_status
@@ -223,11 +217,11 @@ class TestUserService(unittest.TestCase):
         mock_update_status.assert_called_once_with(self.email, 1)
         self.assertTrue(result)
 
-    @patch("app.services.user_service.UserRepository.update_user_status",
-           return_value=0)
+    @patch(
+        "app.services.user_service.UserRepository.update_user_status", return_value=0
+    )
     @patch("app.services.user_service.BaseCache.verify_code", return_value=False)
-    def test_verify_account_db_update_fails(
-            self, mock_verify_code, mock_update_status):
+    def test_verify_account_db_update_fails(self, mock_verify_code, mock_update_status):
         """Should return False when cache fails and if DB update is skipped"""
         result = UserService.verify_account(self.email, self.code)
 
@@ -259,8 +253,7 @@ class TestUserService(unittest.TestCase):
 
         token = "sometoken"
 
-        data = {"token": token, "time": datetime.now().strftime(
-            "%Y-%m-%d %H:%M:%S")}
+        data = {"token": token, "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
 
         # Arrange
         mock_generate_reset_token.return_value = token
