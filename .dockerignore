@@ -1,0 +1,47 @@
+# Version control
+.git
+.gitignore
+.github
+
+# Python caches & build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+Pipfile
+Pipfile.lock
+
+# Environment & secrets (never bake into the image)
+.env
+.env.*
+!.env.example
+!.env.docker.example
+
+# Local dev & infra tooling not needed in the runtime image
+frontend/
+deployments/
+tests/
+Notes.md
+docker-compose.yml
+Dockerfile.dev
+.pre-commit-config.yml
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Uploaded files (runtime-generated)
+app/uploads/*
+!app/uploads/.gitkeep

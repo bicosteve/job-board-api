@@ -27,5 +27,8 @@ app/tests/__pycache__
 **/crash.*.log
 *.pdf
 
+# AWS KP
+*.pem
+
 
 

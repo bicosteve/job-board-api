@@ -34,6 +34,23 @@ class BaseConfig:
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
 
+    # Rate limiting
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
+    RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
+    RATELIMIT_STRATEGY = os.getenv("RATELIMIT_STRATEGY", "fixed-window")
+    _REDIS_AUTH = f":{REDIS_PASSWORD}@" if REDIS_PASSWORD else ""
+    RATELIMIT_STORAGE_URI = os.getenv(
+        "RATELIMIT_STORAGE_URI",
+        f"redis://{_REDIS_AUTH}{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
+    )
+
+    AUTH_LIMIT_PER_MINUTE = os.getenv("AUTH_LIMIT_PER_MINUTE", "5 per minute")
+    AUTH_LIMIT_PER_5_MINUTES = os.getenv("AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
+    AUTH_LIMIT_PER_10_MINUTES = os.getenv(
+        "AUTH_LIMIT_PER_10_MINUTES", "20 per 10 minutes"
+    )
+    AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
+
     # RabbitMQ
     RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
     RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")

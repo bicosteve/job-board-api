@@ -48,3 +48,11 @@ plan:
 apply:
 	cd deployments && terraform apply
 
+
+# ====== AWS Connect =====
+connect-private:
+	ssh -i node-01-KP.pem ec2-user@10.0.3.84
+
+connect-public:
+	ssh -i node-01-KP.pem ec2-user@3.69.30.108
+
