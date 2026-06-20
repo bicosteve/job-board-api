@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch
 from app.services.profile_service import ProfileService
-from app.utils.exceptions import GenericDatabaseError, InvalidCredentialsError
+from app.utils.exceptions import GenericDatabaseError
 
 
 class TestProfileService(unittest.TestCase):

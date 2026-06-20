@@ -29,7 +29,8 @@ class Mails:
             Logger.info(f"Message sent successfully to {mail_to}")
             return {"status_code": response.status_code, "to": mail_to}
         except Exception as e:
-            Logger.warn(f"Failed to send mail to {mail_to} because of {str(e)}")
+            Logger.warn(
+                f"Failed to send mail to {mail_to} because of {str(e)}")
             raise e
 
     @staticmethod
@@ -66,7 +67,8 @@ class Mails:
                 "body": response.json(),
             }
         except requests.exceptions.RequestException as e:
-            Logger.warn(f"Failed to send mail to {mail_to} because of {str(e)}")
+            Logger.warn(
+                f"Failed to send mail to {mail_to} because of {str(e)}")
             raise e
 
     @staticmethod

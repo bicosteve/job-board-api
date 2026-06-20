@@ -88,8 +88,19 @@ class JobRepository:
                 application_url = data['application_url']
                 deadline = data['deadline']
                 status = convert_job_status(data['status'])
-                cursor.execute(query, (admin_id, title, description, requirements, location,
-                               employment_type, salary_range, company_name, application_url, deadline, status))
+                cursor.execute(
+                    query,
+                    (admin_id,
+                     title,
+                     description,
+                     requirements,
+                     location,
+                     employment_type,
+                     salary_range,
+                     company_name,
+                     application_url,
+                     deadline,
+                     status))
                 conn.commit()
                 Logger.info(f"Job {title} by {admin_id} created successfully")
                 return cursor.lastrowid

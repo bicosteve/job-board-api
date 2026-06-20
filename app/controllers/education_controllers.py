@@ -38,7 +38,8 @@ class EducationController(Resource):
             payload = schema.load(request.get_json())
             if not isinstance(payload, dict):
                 Logger.warn(f'Payload error: expected object got {payload}')
-                return {'msg': 'Payload error: expected object got list or None'}, 400
+                return {
+                    'msg': 'Payload error: expected object got list or None'}, 400
 
             token_or_error = get_auth_token()
             if isinstance(token_or_error, tuple):
@@ -48,7 +49,8 @@ class EducationController(Resource):
 
             row_count = EducationService.create_education(token, payload)
             if row_count < 1:
-                return {'error': f'Failed to create education for {payload}'}, 500
+                return {
+                    'error': f'Failed to create education for {payload}'}, 500
 
             return {'msg': 'Education created'}, 201
         except ValidationError as err:

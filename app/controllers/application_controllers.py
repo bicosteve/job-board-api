@@ -142,7 +142,8 @@ class UserApplicationsStreamController(Resource):
             previous_data = None
             while True:
                 try:
-                    applications = ApplicationService.list_users_applications(token)
+                    applications = ApplicationService.list_users_applications(
+                        token)
                     payload = {'applications': applications}
                     data = json.dumps(payload)
                     if data != previous_data:
@@ -152,7 +153,10 @@ class UserApplicationsStreamController(Resource):
                     yield 'event: error\ndata: {"message":"Unable to fetch updates"}\n\n'
                 time.sleep(5)
 
-        return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
+        return Response(
+            stream_with_context(
+                event_stream()),
+            mimetype='text/event-stream')
 
 
 class AdminApplicationsStreamController(Resource):
@@ -176,7 +180,8 @@ class AdminApplicationsStreamController(Resource):
             limit = 10
             while True:
                 try:
-                    payload = ApplicationService.get_all_job_applications(token, job_id, limit, page)
+                    payload = ApplicationService.get_all_job_applications(
+                        token, job_id, limit, page)
                     data = json.dumps(payload)
                     if data != previous_data:
                         yield f"data: {data}\n\n"
@@ -185,7 +190,10 @@ class AdminApplicationsStreamController(Resource):
                     yield 'event: error\ndata: {"message":"Unable to fetch updates"}\n\n'
                 time.sleep(5)
 
-        return Response(stream_with_context(event_stream()), mimetype='text/event-stream')
+        return Response(
+            stream_with_context(
+                event_stream()),
+            mimetype='text/event-stream')
 
 
 class UsersJobApplicationController(Resource):
@@ -244,7 +252,8 @@ class ApplicationUpdateController(Resource):
             result = ApplicationService.update_an_application(
                 token, validated['application_id'], payload['status'])
             if not result:
-                return {'msg': f'Application {application_id} was not updated'}, 404
+                return {
+                    'msg': f'Application {application_id} was not updated'}, 404
             return {'msg': 'Application update success'}, 200
         except GenericDatabaseError as e:
             Logger.warn(f'{str(e)}')

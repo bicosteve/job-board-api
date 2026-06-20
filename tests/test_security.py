@@ -69,7 +69,8 @@ class TestSecurity(unittest.TestCase):
 
     def test_create_jwt_token_uses_default_expiry(self):
         """When JWT_TOKEN_EXPIRY_HOURS is unset, default 24h is used."""
-        env = {k: v for k, v in os.environ.items() if k != "JWT_TOKEN_EXPIRY_HOURS"}
+        env = {k: v for k, v in os.environ.items() if k
+               != "JWT_TOKEN_EXPIRY_HOURS"}
         with patch.dict(os.environ, env, clear=True):
             token = Security.create_jwt_token(self.profile_id, self.email)
         decoded = Security.decode_jwt_token(token)

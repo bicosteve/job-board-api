@@ -47,7 +47,8 @@ class TestUserProfileController(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
         self.client = self.app.test_client()
-        self.app.add_url_rule("/user", view_func=UserProfileController.as_view("user"))
+        self.app.add_url_rule(
+            "/user", view_func=UserProfileController.as_view("user"))
         self.headers = {"Authorization": "Bearer validtoken"}
         self.user_payload = {
             "user_id": 1,
@@ -64,14 +65,16 @@ class TestUserProfileController(unittest.TestCase):
         self.assertIn("error", response.get_json())
 
     def test_user_profile_invalid_authorization_header(self):
-        response = self.client.get("/user", headers={"Authorization": "Basic abc"})
+        response = self.client.get(
+            "/user", headers={"Authorization": "Basic abc"})
         self.assertEqual(response.status_code, 401)
         self.assertIn("error", response.get_json())
 
     @patch("app.controllers.user_controllers.UserService.get_user_profile")
     @patch("app.controllers.user_controllers.Security.decode_jwt_token")
     def test_user_profile_success(self, mock_decode, mock_get_user_profile):
-        mock_decode.return_value = {"profile_id": 1, "email": "user@example.com"}
+        mock_decode.return_value = {
+            "profile_id": 1, "email": "user@example.com"}
         mock_get_user_profile.return_value = self.user_payload
 
         response = self.client.get("/user", headers=self.headers)
@@ -102,7 +105,8 @@ class TestUserProfileController(unittest.TestCase):
 
     @patch("app.controllers.user_controllers.UserService.get_user_profile")
     @patch("app.controllers.user_controllers.Security.decode_jwt_token")
-    def test_user_profile_expired_token(self, mock_decode, mock_get_user_profile):
+    def test_user_profile_expired_token(
+            self, mock_decode, mock_get_user_profile):
         from jwt import ExpiredSignatureError
 
         mock_decode.side_effect = ExpiredSignatureError("expired")
@@ -113,7 +117,8 @@ class TestUserProfileController(unittest.TestCase):
 
     @patch("app.controllers.user_controllers.UserService.get_user_profile")
     @patch("app.controllers.user_controllers.Security.decode_jwt_token")
-    def test_user_profile_invalid_token(self, mock_decode, mock_get_user_profile):
+    def test_user_profile_invalid_token(
+            self, mock_decode, mock_get_user_profile):
         from jwt import InvalidTokenError
 
         mock_decode.side_effect = InvalidTokenError("bad")
@@ -124,7 +129,8 @@ class TestUserProfileController(unittest.TestCase):
 
     @patch("app.controllers.user_controllers.UserService.get_user_profile")
     @patch("app.controllers.user_controllers.Security.decode_jwt_token")
-    def test_user_profile_unexpected_error(self, mock_decode, mock_get_user_profile):
+    def test_user_profile_unexpected_error(
+            self, mock_decode, mock_get_user_profile):
         mock_decode.side_effect = Exception("boom")
 
         response = self.client.get("/user", headers=self.headers)
@@ -152,7 +158,8 @@ class TestVerifyUserAccountController(unittest.TestCase):
 
         response = self.client.post("/verify", json=self.payload)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["msg"], "account verification success")
+        self.assertEqual(response.get_json()[
+                         "msg"], "account verification success")
         mock_verify.assert_called_once_with(self.email, self.code)
 
     @patch("app.controllers.user_controllers.UserService.verify_account")
@@ -303,7 +310,8 @@ class TestResetUserPasswordController(unittest.TestCase):
 
         response = self.client.post(self.endpoint, json=self.payload)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["msg"], "Password changed successfully")
+        self.assertEqual(response.get_json()[
+                         "msg"], "Password changed successfully")
         mock_verify.assert_called_once_with(self.token, 3600)
         mock_change.assert_called_once_with("user@example.com", self.password)
 

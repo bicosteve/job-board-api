@@ -25,8 +25,8 @@ class TestApplicationControllers(unittest.TestCase):
             UsersJobApplicationController, "/applications/<int:application_id>"
         )
         api.add_resource(
-            ApplicationUpdateController, "/applications/<int:application_id>/update"
-        )
+            ApplicationUpdateController,
+            "/applications/<int:application_id>/update")
 
         self.client = self.app.test_client()
         self.headers = {"Authorization": "Bearer testtoken"}
@@ -54,7 +54,8 @@ class TestApplicationControllers(unittest.TestCase):
     )
     @patch("app.controllers.application_controllers.JobApplicationSchema.load")
     def test_create_application_success(self, mock_load, mock_service):
-        mock_load.return_value = {"job_id": 1, "cover_letter": "I am interested"}
+        mock_load.return_value = {"job_id": 1,
+                                  "cover_letter": "I am interested"}
         mock_service.return_value = 1
 
         response = self.client.post(
@@ -123,7 +124,8 @@ class TestApplicationControllers(unittest.TestCase):
     )
     @patch("app.controllers.application_controllers.ApplicationIdSchema.load")
     @patch("app.controllers.application_controllers.JobUpdateSchema.load")
-    def test_update_application_success(self, mock_load, mock_id_load, mock_service):
+    def test_update_application_success(
+            self, mock_load, mock_id_load, mock_service):
         mock_id_load.return_value = {"application_id": 1}
         mock_load.return_value = {"status": "Open"}
         mock_service.return_value = True
@@ -135,14 +137,16 @@ class TestApplicationControllers(unittest.TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["msg"], "Application update success")
+        self.assertEqual(response.get_json()[
+                         "msg"], "Application update success")
 
     @patch(
         "app.controllers.application_controllers.ApplicationService.update_an_application"
     )
     @patch("app.controllers.application_controllers.ApplicationIdSchema.load")
     @patch("app.controllers.application_controllers.JobUpdateSchema.load")
-    def test_update_application_not_found(self, mock_load, mock_id_load, mock_service):
+    def test_update_application_not_found(
+            self, mock_load, mock_id_load, mock_service):
         mock_id_load.return_value = {"application_id": 999}
         mock_load.return_value = {"status": "Closed"}
         mock_service.return_value = False
@@ -154,4 +158,5 @@ class TestApplicationControllers(unittest.TestCase):
             content_type="application/json",
         )
         self.assertEqual(response.status_code, 404)
-        self.assertIn("Application 999 was not updated", response.get_json()["msg"])
+        self.assertIn("Application 999 was not updated",
+                      response.get_json()["msg"])

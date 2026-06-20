@@ -15,7 +15,8 @@ from ..utils.exceptions import (
 def serialize_application(row: dict) -> dict:
     application = dict(row)
     for field in ('created_at', 'modified_at'):
-        if field in application and isinstance(application[field], (date, datetime)):
+        if field in application and isinstance(
+                application[field], (date, datetime)):
             application[field] = application[field].isoformat()
     return application
 
@@ -51,7 +52,11 @@ class ApplicationRepository:
             raise GenericDatabaseError(str(e))
 
     @staticmethod
-    def get_jobs_applications(job_id: int, limit: int, offset: int, admin_id: int) -> list:
+    def get_jobs_applications(
+            job_id: int,
+            limit: int,
+            offset: int,
+            admin_id: int) -> list:
         conn = None
         try:
             Logger.info(f'Job id -> {job_id}')
@@ -125,7 +130,8 @@ class ApplicationRepository:
                 cursor.execute(query, (user_id,))
                 res = cursor.fetchall()
 
-                applications = [serialize_application(row) for row in res or []]
+                applications = [serialize_application(
+                    row) for row in res or []]
                 return applications
         except pymysql.MySQLError as e:
             Logger.warn(f'PYMYSQL: {str(e)}')
@@ -183,7 +189,10 @@ class ApplicationRepository:
             raise GenericDatabaseError(str(e))
 
     @staticmethod
-    def update_application(application_id: int, admin_id: int, status: int) -> bool:
+    def update_application(
+            application_id: int,
+            admin_id: int,
+            status: int) -> bool:
         conn = None
         try:
             conn = DB.get_db()

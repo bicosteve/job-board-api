@@ -98,7 +98,10 @@ class AdminRepository:
                 """.strip()
 
                 cursor.execute(
-                    query, (data['email'], data['username'], data['password_hash']))
+                    query,
+                    (data['email'],
+                     data['username'],
+                        data['password_hash']))
                 conn.commit()
 
                 return cursor.rowcount

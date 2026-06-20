@@ -39,10 +39,12 @@ class FileUploadController(Resource):
             return {'error': 'No file selected'}, 400
 
         if not FileService.is_allowed_file(upload_file.filename):
-            return {'error': 'Unsupported file type. Allowed: pdf, doc, docx, txt'}, 400
+            return {
+                'error': 'Unsupported file type. Allowed: pdf, doc, docx, txt'}, 400
 
         try:
-            filename = FileService.save_uploaded_file(upload_file, current_app.config['UPLOAD_FOLDER'])
+            filename = FileService.save_uploaded_file(
+                upload_file, current_app.config['UPLOAD_FOLDER'])
             host_url = request.host_url.rstrip('/')
             file_url = f"{host_url}/uploads/{filename}"
             return {'file_url': file_url}, 201

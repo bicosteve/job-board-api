@@ -34,8 +34,9 @@ class TestRegisterController(unittest.TestCase):
         with patch(target) as mock_register:
             mock_register.side_effect = ValidationError("validation error")
             response = self.client.post(
-                "/register", data=json.dumps(payload), content_type="application/json"
-            )
+                "/register",
+                data=json.dumps(payload),
+                content_type="application/json")
 
             # Assertion
             self.assertEqual(response.status_code, 400)

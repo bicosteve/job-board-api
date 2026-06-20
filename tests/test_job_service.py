@@ -1,7 +1,8 @@
 import unittest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 from app.services.job_service import JobService
-from app.utils.exceptions import GenericDatabaseError, InvalidLoginAttemptError
+from app.utils.exceptions import GenericDatabaseError
 
 
 class TestJobService(unittest.TestCase):
@@ -16,7 +17,7 @@ class TestJobService(unittest.TestCase):
         data = {
             "title": "QA Engineer",
             "description": "Testing APIs",
-            "token": "validtoken"
+            "token": "validtoken",
         }
 
         result = JobService.add_job(data)
@@ -26,9 +27,13 @@ class TestJobService(unittest.TestCase):
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_add_job_invalid_token(self, mock_decode):
         mock_decode.return_value = {
-            "profile_id": None, "email": "admin@example.com"}
-        data = {"title": "QA Engineer",
-                "description": "Testing APIs", "token": "badtoken"}
+            "profile_id": None,
+            "email": "admin@example.com"}
+        data = {
+            "title": "QA Engineer",
+            "description": "Testing APIs",
+            "token": "badtoken",
+        }
 
         with self.assertRaises(GenericDatabaseError):
             JobService.add_job(data)
@@ -39,8 +44,11 @@ class TestJobService(unittest.TestCase):
         mock_decode.return_value = {
             "profile_id": 1, "email": "admin@example.com"}
         mock_insert.return_value = None
-        data = {"title": "QA Engineer",
-                "description": "Testing APIs", "token": "validtoken"}
+        data = {
+            "title": "QA Engineer",
+            "description": "Testing APIs",
+            "token": "validtoken",
+        }
 
         result = JobService.add_job(data)
         self.assertIsNone(result)
@@ -64,20 +72,26 @@ class TestJobService(unittest.TestCase):
     @patch("app.services.job_service.JobRepository.update_job")
     @patch("app.services.job_service.JobRepository.get_job")
     @patch("app.services.job_service.Security.decode_jwt_token")
-    def test_update_job_success(self, mock_decode, mock_get_job, mock_update_job):
+    def test_update_job_success(
+            self,
+            mock_decode,
+            mock_get_job,
+            mock_update_job):
         mock_decode.return_value = {
             "profile_id": 1, "email": "admin@example.com"}
         mock_update_job.return_value = 1
         mock_get_job.return_value = {"id": 1, "title": "Updated Job"}
 
         result = JobService.update_job(
-            1, "validtoken", {"title": "Updated Job"})
+            1, "validtoken", {
+                "title": "Updated Job"})
         self.assertEqual(result["title"], "Updated Job")
 
     @patch("app.services.job_service.Security.decode_jwt_token")
     def test_update_job_invalid_token(self, mock_decode):
         mock_decode.return_value = {
-            "profile_id": None, "email": "admin@example.com"}
+            "profile_id": None,
+            "email": "admin@example.com"}
         with self.assertRaises(GenericDatabaseError):
             JobService.update_job(1, "badtoken", {"title": "Updated Job"})
 

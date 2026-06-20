@@ -25,7 +25,8 @@ class JobService:
             token_admin_id = decoded['profile_id']
             if not token_admin_id:
                 Logger.warn(
-                    f"Provided token {token} is not related to {decoded['email']}")
+                    f"Provided token {token} is not related to {
+                        decoded['email']}")
                 raise InvalidLoginAttemptError(
                     "Unauthorized job creation attempt")
 
@@ -98,7 +99,8 @@ class JobService:
             admin_id = decoded['profile_id']
             if not admin_id:
                 Logger.warn(
-                    f"Provided token {token} is not related to {decoded['email']}")
+                    f"Provided token {token} is not related to {
+                        decoded['email']}")
                 raise InvalidLoginAttemptError(
                     "Unauthorized job update attempt")
 

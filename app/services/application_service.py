@@ -34,7 +34,8 @@ class ApplicationService:
             if result < 1:
                 return False
 
-            info = ApplicationRepository.get_job_info_for_notification(data['job_id'])
+            info = ApplicationRepository.get_job_info_for_notification(
+                data['job_id'])
             if isinstance(info, dict) and info.get('job_title'):
                 NotificationService.notify_applicant_of_submission(
                     decoded['email'],
@@ -52,7 +53,11 @@ class ApplicationService:
             raise GenericDatabaseError(f'Error occurred {str(e)}')
 
     @staticmethod
-    def get_all_job_applications(token: str, job_id: int, limit: int, page: int) -> dict:
+    def get_all_job_applications(
+            token: str,
+            job_id: int,
+            limit: int,
+            page: int) -> dict:
         try:
             decoded = Security.decode_jwt_token(token)
             if not decoded:
@@ -130,7 +135,8 @@ class ApplicationService:
                 Logger.warn(f'Failed to get user_id from {decoded}')
                 raise ValueError(f'Failed to get user_id from {decoded}')
 
-            updated = ApplicationRepository.update_application(app_id, admin_id, status) > 0
+            updated = ApplicationRepository.update_application(
+                app_id, admin_id, status) > 0
             if not updated:
                 return False
 

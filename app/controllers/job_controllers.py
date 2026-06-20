@@ -46,7 +46,8 @@ class PostJobController(Resource):
             payload = job_schema.load(request.get_json())
 
             if not isinstance(payload, dict):
-                return {'validation_err': f"payload {payload} has an error"}, 400
+                return {
+                    'validation_err': f"payload {payload} has an error"}, 400
 
             details = payload['details']
 

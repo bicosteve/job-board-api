@@ -77,10 +77,12 @@ class TestApplicationService(unittest.TestCase):
         "app.services.application_service.ApplicationRepository.get_jobs_applications"
     )
     @patch("app.services.application_service.Security.decode_jwt_token")
-    def test_get_all_job_applications_success(self, mock_decode, mock_get_jobs):
+    def test_get_all_job_applications_success(
+            self, mock_decode, mock_get_jobs):
         mock_decode.return_value = self.decoded
         mock_get_jobs.return_value = [{"id": 1}]
-        result = ApplicationService.get_all_job_applications(self.token, 1, 10, 1)
+        result = ApplicationService.get_all_job_applications(
+            self.token, 1, 10, 1)
         self.assertEqual(result["page"], 1)
         self.assertEqual(result["limit"], 10)
         self.assertEqual(result["count"], 1)

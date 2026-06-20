@@ -70,7 +70,8 @@ class TestLoginController(unittest.TestCase):
     @patch('app.controllers.user_controllers.Security.create_jwt_token')
     @patch('app.controllers.user_controllers.UserService.get_user')
     @patch('app.controllers.user_controllers.LoginUserController.login_schema.load')
-    def test_login_user_not_found_500(self, mock_load, mock_get_user, mock_token):
+    def test_login_user_not_found_500(
+            self, mock_load, mock_get_user, mock_token):
         'Should return 500 if token generation fails'
         mock_load.return_value = self.payload
         mock_get_user.return_value = {'user_id': 1, 'email': self.email}
@@ -98,7 +99,7 @@ class TestLoginController(unittest.TestCase):
         response = self.client.post(
             self.endpoint, json=self.payload)
 
-        data = response.get_json()
+        response.get_json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json()['msg'], 'Login success')
         self.assertEqual(response.get_json()['token'], 'jwt-token-123')
