@@ -9,6 +9,11 @@ class DB:
     @staticmethod
     def get_db():
         if "db" not in g:
+            Logger.info(f"db-host {current_app.config["DB_HOST"]}")
+            Logger.info(f"db-port {current_app.config["DB_PORT"]}")
+            Logger.info(f"db-user {current_app.config["DB_USER"]}")
+            Logger.info(f"db-password {current_app.config["DB_PASSWORD"]}")
+            Logger.info(f"db-name {current_app.config["DB_NAME"]}")
             try:
                 g.db = pymysql.connect(
                     host=current_app.config["DB_HOST"],
