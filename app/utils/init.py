@@ -30,11 +30,20 @@ def check_db(app):
     def connect_db():
         conn = None
         try:
+            Logger.info(f"db-host {current_app.config["DB_HOST"]}")
+            Logger.info(f"db-port {current_app.config["DB_PORT"]}")
+            Logger.info(f"db-user {current_app.config["DB_USER"]}")
+            Logger.info(f"db-password {current_app.config["DB_PASSWORD"]}")
+            Logger.info(f"db-name {current_app.config["DB_NAME"]}")
             conn = pymysql.connect(
-                host=app.config["DB_HOST"],
-                user=app.config["DB_USER"],
-                password=app.config["DB_PASSWORD"],
-                database=app.config["DB_NAME"],
+                host=current_app.config["DB_HOST"],
+                port=int(current_app.config["DB_PORT"]),
+                user=current_app.config["DB_USER"],
+                password=current_app.config["DB_PASSWORD"],
+                database=current_app.config["DB_NAME"],
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=False,
+                ssl={"ssl",{}},
                 connect_timeout=5,
             )
 
