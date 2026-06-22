@@ -2,9 +2,7 @@
 
 # Job Board API
 
-### A production-grade hiring platform — Flask · MySQL · Redis · React · TypeScript
-
-**Full-stack. Fully tested. Fully documented. Ready to ship.**
+### A production-grade hiring platform
 
 ![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/Flask-2.3-000000?logo=flask&logoColor=white)
@@ -187,6 +185,8 @@ python run.py
 # Visit http://localhost:5005/apidocs
 ```
 
+
+
 ### Docker (recommended for local stack)
 
 ```bash
@@ -255,11 +255,14 @@ This avoids formatter-vs-linter conflicts during local development and in GitHub
 
 ## Tech stack
 
-**Backend** — Python 3.12 · Flask 2.3 · Flask-RESTful · Flask-CORS · Flask-Marshmallow · Flasgger · PyJWT · bcrypt · cryptography · PyMySQL · redis-py · Gunicorn
+**Backend:** Python 3.12 · Flask 2.3 · Flask-RESTful · Flask-CORS · 
+Flask-Marshmallow · Flasgger · PyJWT · bcrypt · cryptography · PyMySQL · 
+redis-py · Gunicorn · Celery
 
-**Frontend** — React 18 · TypeScript 5 · Vite 5 · React Router 6
+**Frontend:** React 18 · TypeScript 5 · Vite 5 · React Router 6
 
-**Infrastructure** — Docker · Docker Compose · MySQL 8 · Redis 7 · pre-commit · Make
+**Infrastructure:** Docker · Docker Compose · MySQL 8 · Redis 7 · pre-commit 
+· Make
 
 ---
 

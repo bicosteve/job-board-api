@@ -12,12 +12,13 @@ class DB:
             try:
                 g.db = pymysql.connect(
                     host=current_app.config["DB_HOST"],
+                    port=int(current_app.config["DB_PORT"]),
                     user=current_app.config["DB_USER"],
                     password=current_app.config["DB_PASSWORD"],
                     database=current_app.config["DB_NAME"],
                     cursorclass=pymysql.cursors.DictCursor,
                     autocommit=False,
-                    ssl_disabled=False,
+                    ssl={"ssl",{}},
                     connect_timeout=10,
                 )
             except pymysql.MySQLError as e:
