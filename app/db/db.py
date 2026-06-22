@@ -10,6 +10,12 @@ class DB:
     def get_db():
         if "db" not in g:
             try:
+                Logger.info(f"""
+                    DB_HOST={current_app.config.get('DB_HOST')}
+                    DB_PORT={current_app.config.get('DB_PORT')}
+                    DB_USER={current_app.config.get('DB_USER')}
+                    DB_NAME={current_app.config.get('DB_NAME')}
+                    """)
                 g.db = pymysql.connect(
                     host=current_app.config["DB_HOST"],
                     port=int(current_app.config["DB_PORT"]),
@@ -18,7 +24,7 @@ class DB:
                     database=current_app.config["DB_NAME"],
                     cursorclass=pymysql.cursors.DictCursor,
                     autocommit=False,
-                    ssl={"ssl",{}},
+                    ssl={},
                     connect_timeout=10,
                 )
             except pymysql.MySQLError as e:

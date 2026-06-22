@@ -30,24 +30,25 @@ def check_db(app):
     def connect_db():
         conn = None
         try:
-            Logger.info(f"db-host {current_app.config["DB_HOST"]}")
-            Logger.info(f"db-port {current_app.config["DB_PORT"]}")
-            Logger.info(f"db-user {current_app.config["DB_USER"]}")
-            Logger.info(f"db-password {current_app.config["DB_PASSWORD"]}")
-            Logger.info(f"db-name {current_app.config["DB_NAME"]}")
+            Logger.info(f"db-host {app.config['DB_HOST']}")
+            Logger.info(f"db-port {app.config['DB_PORT']}")
+            Logger.info(f"db-user {app.config['DB_USER']}")
+            Logger.info(f"db-name {app.config['DB_NAME']}")
+
             conn = pymysql.connect(
-                host=current_app.config["DB_HOST"],
-                port=int(current_app.config["DB_PORT"]),
-                user=current_app.config["DB_USER"],
-                password=current_app.config["DB_PASSWORD"],
-                database=current_app.config["DB_NAME"],
+                host=app.config["DB_HOST"],
+                port=int(app.config["DB_PORT"]),
+                user=app.config["DB_USER"],
+                password=app.config["DB_PASSWORD"],
+                database=app.config["DB_NAME"],
                 cursorclass=pymysql.cursors.DictCursor,
                 autocommit=False,
-                ssl={"ssl",{}},
+                ssl={},
                 connect_timeout=5,
             )
 
             Logger.info("DB connection success")
+
         except Exception as e:
             Logger.exception(f"An error occured {str(e)}")
             raise
