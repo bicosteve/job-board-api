@@ -98,14 +98,16 @@ def check_broker(app):
 
         try:
             # Use full broker URL if provided
-            broker_url = app.config.get("CELERY_BROKER_URL") or app.config.get(
-                "RABBITMQ_URL"
-            )
+            broker_url = app.config.get("RABBITMQ_URL")
+            if not broker_url:
+                raise ValueError("RABBITMQ_URL is missing!")
 
             if broker_url:
                 parsed = urlparse(broker_url)
-                use_tls = parsed.scheme == "amqps"
 
+                print(f"DEBUG: Parsed host={parsed.host}, port={parsed.port}")
+
+                use_tls = parsed.scheme == "amqps"
                 credentials = pika.PlainCredentials(
                     username=parsed.username,
                     password=parsed.password,
