@@ -61,6 +61,8 @@ def check_cache(app):
         client = None
         try:
             redis_url = app.config.get("REDIS_URL")
+            if not redis_url:
+                raise ValueError("REDIS_URL not provided")
             if redis_url:
                 client = redis.from_url(
                     redis_url, decode_responses=True, socket_connect_timeout=5
@@ -98,7 +100,7 @@ def check_broker(app):
 
         try:
             # Use full broker URL if provided
-            broker_url = app.config.get("RABBITMQ_URL")
+            broker_url = app.config.get("CELERY_BROKER_URL")
             if not broker_url:
                 raise ValueError("RABBITMQ_URL is missing!")
 
