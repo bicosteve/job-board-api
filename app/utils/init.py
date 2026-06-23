@@ -111,7 +111,9 @@ def check_broker(app):
 
                 parsed = urlparse(broker_url)
 
-                print(f"DEBUG: Parsed host={parsed.host}, port={parsed.port}")
+                print(
+                    f"DEBUG: scheme={parsed.scheme}, hostname={parsed.hostname}, port={parsed.port}, vhost={parsed.path}"
+                )
 
                 use_tls = parsed.scheme == "amqps"
                 credentials = pika.PlainCredentials(
