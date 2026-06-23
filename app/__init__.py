@@ -7,6 +7,7 @@ import pika
 from flasgger import Swagger
 from flask import Flask
 from flask_cors import CORS
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from .config import DevelopmentConfig, DockerConfig, ProductionConfig
 from .db.db import DB
@@ -34,7 +35,13 @@ def create_app():
     app.config.from_object(config_map.get(env, DevelopmentConfig))
 
     # Swagger init
-    Swagger(app, template=swagger_template)
+    app.config["APPLICATION_ROOT"] = "/job-board-api"
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1)
+    Swagger(
+        app,
+        config={"specs_route": "/job-board-api/v1/api/apidocs/"},
+        template=swagger_template,
+    )
 
     # Enable cross origin requests
     CORS(app)

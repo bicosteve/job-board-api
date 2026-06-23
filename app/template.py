@@ -29,13 +29,13 @@ swagger_template = {
         "description": "Job Board API Documentation",
         "version": os.getenv("API_VERSION", "1.0.0"),
         "contact": {
-            "name": os.getenv("CONTACT_NAME", "bix"),
-            "email": os.getenv("CONTACT_EMAIL", "test@example.com"),
+            "name": os.getenv("CONTACT_NAME", "Bico Oloo"),
+            "email": os.getenv("CONTACT_EMAIL", "devbico@gmail.com"),
         },
     },
-    "basePath": "/",
-    "host": SWAGGER_HOST,
-    "schemes": SWAGGER_SCHEMES,
+    "basePath": "/job-board-api/v1/api",
+    # "host": SWAGGER_HOST,
+    "schemes": ["http", "https"],
     "securityDefinitions": {
         "BearerAuth": {
             "type": "apiKey",
