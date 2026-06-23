@@ -1,5 +1,7 @@
 import os
+import ssl
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pika
 from flasgger import Swagger
@@ -50,16 +52,40 @@ def create_app():
     Path(upload_folder).mkdir(parents=True, exist_ok=True)
 
     # Create rabbitmq connection just once when the app starts
-    app.extensions["rabbitmq_connection"] = pika.BlockingConnection(
-        pika.ConnectionParameters(
-            host=app.config["RABBITMQ_HOST"],
-            port=app.config["RABBITMQ_PORT"],
-            credentials=pika.PlainCredentials(
-                username=app.config["RABBITMQ_USER"],
-                password=app.config["RABBITMQ_PASSWORD"],
+    broker_url = app.config.get("CELERY_BROKER_URL")
+    if not broker_url:
+        raise ValueError("RABBITMQ_URI not provided...!")
+
+    if broker_url:
+        parsed = urlparse(broker_url)
+        use_tls = parsed.scheme == "amqps"
+        parameters = (
+            pika.ConnectionParameters(
+                host=parsed.hostname,
+                port=parsed.port or (5671 if use_tls else 5672),
+                virtual_host=parsed.path.lstrip("/") or "/",
+                credentials=pika.PlainCredentials(
+                    username=parsed.username, password=parsed.password
+                ),
+                ssl_options=(
+                    pika.SSLOptions(ssl.create_default_context()) if use_tls else None
+                ),
             ),
         )
-    )
+
+    else:
+        # Fallback plan for local dev env
+        parameters = pika.ConnectionParameters(
+            host=app.config.get("RABBITMQ_HOST", "localhost"),
+            port=app.config.get("RABBITMQ_PORT", 5672),
+            virtual_host=app.config.get("RABBITMQ_VHOST", "/"),
+            credentials=pika.PlainCredentials(
+                username=app.config.get("RABBITMQ_USER", "guest"),
+                password=app.config.get("RABBITMQ_PASSWORD", "guest"),
+            ),
+        )
+
+    app.extensions["rabbitmq_connection"] = pika.BlockingConnection(parameters)
 
     celery.conf.update(app.config)
     # celery_ext.flask_app = app
