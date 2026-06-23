@@ -1,4 +1,5 @@
 import os
+import ssl
 
 from celery import Celery
 from dotenv import load_dotenv
@@ -29,12 +30,25 @@ if not result_backend:
     host = os.getenv("REDIS_HOST", "localhost")
     port = os.getenv("REDIS_PORT", "6379")
     db = os.getenv("REDIS_DB", "0")
-    password = os.getenv("REDDIS_PASSWORD", "")
+    password = os.getenv("REDIS_PASSWORD", "")
     username = os.getenv("REDIS_USERNAME", "default")
     scheme = "rediss" if password else "redis"
     auth = f"{username}:{password}@" if password else ""
     result_backend = f"{scheme}://{auth}{host}:{port}/{db}"
 
 
-celery = Celery(__name__, broker=broker_url, backend=result_backend)
+celery = Celery(
+    __name__,
+    broker=broker_url,
+    backend=result_backend,
+)
+
+if broker_url.startswith("amqps://"):
+    # SSL settings for
+    celery.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+if result_backend.startswith("rediss://"):
+    celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+
+
 flask_app = None  # will be populated by create_app()

@@ -87,7 +87,7 @@ def create_app():
 
     app.extensions["rabbitmq_connection"] = pika.BlockingConnection(parameters)
 
-    celery.conf.update(app.config)
+    # celery.conf.update(app.config)
     # celery_ext.flask_app = app
 
     class ContextTask(celery.Task):
