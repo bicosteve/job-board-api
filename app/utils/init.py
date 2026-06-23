@@ -60,13 +60,17 @@ def check_cache(app):
     def connect_redis():
         client = None
         try:
-            redis_url = app.config.get("REDIS_URL")
-            if not redis_url:
-                raise ValueError("REDIS_URL not provided")
-            if redis_url:
+            if app.config.get("ENV").lower() != "dev":
+                redis_url = app.config.get("REDIS_URL")
+                if not redis_url:
+                    raise ValueError("REDIS_URL not provided!")
+
                 client = redis.from_url(
-                    redis_url, decode_responses=True, socket_connect_timeout=5
+                    redis_url,
+                    decode_responses=True,
+                    socket_connect_timeout=5,
                 )
+
             else:
                 # Fallback to individual ocnfig values (local dev)
                 # password = app.config.get("REDIS_PASSWORD")
@@ -79,10 +83,10 @@ def check_cache(app):
                 )
 
             if client is not None:
-                result = client.ping()
-                Logger.info(f"Redis connection success with {result}")
+                client.ping()
+                Logger.info("Redis connection success...!")
             else:
-                Logger.error("Redis connection not success")
+                Logger.error("Redis connection not success...!")
         except Exception as e:
             Logger.exception(f"Something went wrong {str(e)}")
             raise
@@ -100,11 +104,11 @@ def check_broker(app):
 
         try:
             # Use full broker URL if provided
-            broker_url = app.config.get("CELERY_BROKER_URL")
-            if not broker_url:
-                raise ValueError("RABBITMQ_URL is missing!")
+            if app.config.get("ENV").lower() != "dev":
+                broker_url = app.config.get("CELERY_BROKER_URL")
+                if not broker_url:
+                    raise ValueError("RABBITMQ_URL is missing!")
 
-            if broker_url:
                 parsed = urlparse(broker_url)
 
                 print(f"DEBUG: Parsed host={parsed.host}, port={parsed.port}")
@@ -125,7 +129,6 @@ def check_broker(app):
                         else None
                     ),
                 )
-
             else:
                 password = app.config["RABBITMQ_PASSWORD"]
                 if password:
@@ -149,11 +152,11 @@ def check_broker(app):
             channel = connection.channel()
 
             if channel.is_open:
-                Logger.info("RabbitMQ connection success")
+                Logger.info("RabbitMQ connection success...!")
             else:
-                Logger.error("RabbitMQ connection not successful")
+                Logger.error("RabbitMQ connection not successful...!")
         except Exception as e:
-            Logger.exception(f"Something went wrong {str(e)}")
+            Logger.exception(f"Something went wrong {str(e)}...!")
             raise
         finally:
             if connection is not None and connection.is_open:

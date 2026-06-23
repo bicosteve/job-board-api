@@ -91,7 +91,8 @@ class BaseConfig:
             )
         )
     else:
-        CELERY_BROKER_URL = "amqps://{user}:{password}@{host}:{port}/{vhost}".format(
+        CELERY_BROKER_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
+            scheme="amqps",
             user=RABBITMQ_USER,
             password=RABBITMQ_PASSWORD,
             host=RABBITMQ_HOST,
@@ -99,7 +100,8 @@ class BaseConfig:
             vhost=RABBITMQ_VHOST,
         )
 
-        RABBITMQ_URL = "amqps://{user}:{password}@{host}:{port}/{vhost}".format(
+        RABBITMQ_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
+            scheme="amqps",
             user=RABBITMQ_USER,
             password=RABBITMQ_PASSWORD,
             host=RABBITMQ_HOST,
