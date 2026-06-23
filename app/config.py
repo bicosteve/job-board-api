@@ -29,10 +29,13 @@ class BaseConfig:
 
     # Redis
     ENV = os.getenv("ENV", "dev")
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
     REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
-    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    REDIS_TLS = os.getenv("REDIS_TLS", "false").lower() == "true"
+    REDIS_URL = os.getenv("REDIS_URL")
 
     # Rate limiting
     RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
@@ -57,12 +60,14 @@ class BaseConfig:
     RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
     RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
     RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "/")
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 
     # API
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
     CONTACT_NAME = os.getenv("CONTACT_NAME", "bicosteve")
     CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "***")
-    API_BASE = os.getenv("API_VERSION_BASE", "/v0/api")
+    API_BASE = os.getenv("API_VERSION_BASE", "/v1/api")
 
     # Docker subnet
     SUBNET = os.getenv("SUBNET", "172.25.0.0/16")
@@ -115,5 +120,4 @@ class ProductionConfig(BaseConfig):
 class DockerConfig(BaseConfig):
     """Docker Container Configurations"""
 
-    DEBUG = True
     DEBUG = True

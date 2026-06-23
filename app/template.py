@@ -9,11 +9,12 @@ def get_swagger_host_and_schemes():
     env = os.getenv("ENV")
     host = "127.0.0.1:5005"
     render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+    # other_host = os.getenv("OTHER_EXTERNAL_HOSTNAME")
     if env == "dev":
         schemes = ["http"]
         host = host
     else:
-        schemes = ["https"]
+        schemes = ["http"]
         host = render_host
 
     return host, schemes

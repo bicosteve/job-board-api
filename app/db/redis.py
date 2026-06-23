@@ -12,14 +12,27 @@ class Cache:
         (g) only exists for a lifetime of a request.
         """
         if "redis" not in g:
-            password = current_app.config["REDIS_PASSWORD"]
-            g.redis = redis.Redis(
-                host=current_app.config["REDIS_HOST"],
-                port=current_app.config["REDIS_PORT"],
-                db=current_app.config["REDIS_DB"],
-                password=password if password else None,
-                decode_responses=True,
-            )
+            # Supports full URL if provided (Upstash, Railway, Render etc)
+            redis_url = current_app.config.get("REDIS_URL")
+            if redis_url:
+                g.redis = redis.from_url(redis_url, decode_response=True)
+            else:
+                # Fallback to individul config values (local dev)
+                password = current_app.config.get("REDIS_PASSWORD")
+                username = current_app.config.get("REDIS_USERNAME", "default")
+                host = current_app.config.get("REDIS_HOST", "localhost")
+                port = current_app.config.get("REDIS_PORT", 6379)
+                db = current_app.config.get("REDIS_DB", 0)
+                ssl = current_app.config.get("REDIS_TLS", False)
+                g.redis = redis.Redis(
+                    host=host,
+                    port=port,
+                    db=db,
+                    username=username if username else None,
+                    password=password if password else None,
+                    ssl=ssl,
+                    decode_responses=True,
+                )
         return g.redis
 
     @staticmethod

@@ -12,8 +12,6 @@ from .db.redis import Cache
 from .extensions.celery import celery
 from .extensions.limiter import init_limiter
 from .queues.queue import RabbitMQ
-
-# from .routes import register_routes
 from .template import swagger_template
 from .utils.init import init_dependencies
 from .utils.logger import Logger

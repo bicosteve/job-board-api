@@ -1,5 +1,7 @@
+import ssl
 import sys
 import time
+from urllib.parse import urlparse
 
 import pika
 import pymysql
@@ -30,11 +32,6 @@ def check_db(app):
     def connect_db():
         conn = None
         try:
-            Logger.info(f"db-host {app.config['DB_HOST']}")
-            Logger.info(f"db-port {app.config['DB_PORT']}")
-            Logger.info(f"db-user {app.config['DB_USER']}")
-            Logger.info(f"db-name {app.config['DB_NAME']}")
-
             conn = pymysql.connect(
                 host=app.config["DB_HOST"],
                 port=int(app.config["DB_PORT"]),
@@ -63,25 +60,25 @@ def check_cache(app):
     def connect_redis():
         client = None
         try:
-            if app.config["REDIS_PASSWORD"]:
-                client = redis.Redis(
-                    host=app.config["REDIS_HOST"],
-                    port=app.config["REDIS_PORT"],
-                    db=app.config["REDIS_DB"],
-                    password=app.config["REDIS_PASSWORD"],
-                    socket_connect_timeout=5,
+            redis_url = app.config.get("REDIS_URL")
+            if redis_url:
+                client = redis.from_url(
+                    redis_url, decode_responses=True, socket_connect_timeout=5
                 )
             else:
+                # Fallback to individual ocnfig values (local dev)
+                # password = app.config.get("REDIS_PASSWORD")
                 client = redis.Redis(
-                    host=app.config["REDIS_HOST"],
-                    port=app.config["REDIS_PORT"],
-                    db=app.config["REDIS_DB"],
+                    host=app.config.get("REDIS_HOST", "localhost"),
+                    port=app.config.get("REDIS_PORT", 6379),
+                    db=app.config.get("REDIS_DB", 0),
+                    # password=password if password else None,
                     socket_connect_timeout=5,
                 )
 
             if client is not None:
-                client.ping()
-                Logger.info("Redis connection success")
+                result = client.ping()
+                Logger.info(f"Redis connection success with {result}")
             else:
                 Logger.error("Redis connection not success")
         except Exception as e:
@@ -100,21 +97,49 @@ def check_broker(app):
         channel = None
 
         try:
-            if app.config["RABBITMQ_PASSWORD"]:
+            # Use full broker URL if provided
+            broker_url = app.config.get("CELERY_BROKER_URL") or app.config.get(
+                "RABBITMQ_URL"
+            )
+
+            if broker_url:
+                parsed = urlparse(broker_url)
+                use_tls = parsed.scheme == "amqps"
+
                 credentials = pika.PlainCredentials(
-                    username=app.config["RABBITMQ_USER"],
-                    password=app.config["RABBITMQ_PASSWORD"],
+                    username=parsed.username,
+                    password=parsed.password,
                 )
                 parameters = pika.ConnectionParameters(
-                    host=app.config["RABBITMQ_HOST"],
-                    port=app.config["RABBITMQ_PORT"],
+                    host=parsed.hostname,
+                    port=parsed.port or (5671 if use_tls else 5672),
+                    virtual_host=parsed.path.lstrip("/") or "/",
                     credentials=credentials,
+                    ssl_options=(
+                        pika.SSLOptions(ssl.create_default_context())
+                        if use_tls
+                        else None
+                    ),
                 )
+
             else:
-                parameters = pika.ConnectionParameters(
-                    host=app.config["RABBITMQ_HOST"],
-                    port=app.config["RABBITMQ_PORT"],
-                )
+                password = app.config["RABBITMQ_PASSWORD"]
+                if password:
+                    credentials = pika.PlainCredentials(
+                        username=app.config["RABBITMQ_USER"],
+                        password=password,
+                    )
+                    parameters = pika.ConnectionParameters(
+                        host=app.config.get("RABBITMQ_HOST", "localhost"),
+                        port=app.config.get("RABBITMQ_PORT", 5672),
+                        virtual_host=app.config.get("RABBITMQ_VHOST", "/"),
+                        credentials=credentials,
+                    )
+                else:
+                    parameters = pika.ConnectionParameters(
+                        host=app.config.get("RABBITMQ_HOST", "localhost"),
+                        port=app.config.get("RABBITMQ_PORT", 5672),
+                    )
 
             connection = pika.BlockingConnection(parameters=parameters)
             channel = connection.channel()
