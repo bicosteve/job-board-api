@@ -37,7 +37,7 @@ class BaseConfig:
     REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
     REDIS_DB = int(os.getenv("REDIS_DB", 0))
     REDIS_TLS = os.getenv("REDIS_TLS", "false").lower() == "true"
-    REDIS_URL = os.getenv("REDIS_URL")
+    REDIS_URL = os.getenv("REDIS_URL")  # prioritized over individual vars
 
     # RabbitMQ
     RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
@@ -73,65 +73,97 @@ class BaseConfig:
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "somestring")
 
     # ===== Celery Urls
-    if ENV == "dev":
-        CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-            user=RABBITMQ_USER,
-            password=RABBITMQ_PASSWORD,
-            host=RABBITMQ_HOST,
-            port=RABBITMQ_PORT,
-            vhost=RABBITMQ_VHOST,
-        )
 
-        CELERY_RESULT_BACKEND = (
-            "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-                redis_password=REDIS_PASSWORD,
-                redis_host=REDIS_HOST,
-                redis_port=REDIS_PORT,
-                redis_db=REDIS_DB,
-            )
-        )
-    else:
-        CELERY_BROKER_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
-            scheme="amqps",
-            user=RABBITMQ_USER,
-            password=RABBITMQ_PASSWORD,
-            host=RABBITMQ_HOST,
-            port=RABBITMQ_PORT,
-            vhost=RABBITMQ_VHOST,
-        )
+    # Celery — read directly from env, fall back to building from individual vars
+    CELERY_BROKER_URL = os.getenv(
+        "CELERY_BROKER_URL",
+        "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
+            user=os.getenv("RABBITMQ_USER", "guest"),
+            password=os.getenv("RABBITMQ_PASSWORD", "guest"),
+            host=os.getenv("RABBITMQ_HOST", "localhost"),
+            port=os.getenv("RABBITMQ_PORT", "5672"),
+            vhost=os.getenv("RABBITMQ_VHOST", "/"),
+        ),
+    )
 
-        RABBITMQ_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
-            scheme="amqps",
-            user=RABBITMQ_USER,
-            password=RABBITMQ_PASSWORD,
-            host=RABBITMQ_HOST,
-            port=RABBITMQ_PORT,
-            vhost=RABBITMQ_VHOST,
-        )
+    CELERY_RESULT_BACKEND = os.getenv(
+        "CELERY_RESULT_BACKEND",
+        os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+    )
 
-        CELERY_RESULT_BACKEND = (
-            "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-                redis_password=REDIS_PASSWORD,
-                redis_host=REDIS_HOST,
-                redis_port=REDIS_PORT,
-                redis_db=REDIS_DB,
-            )
-        )
+    RABBITMQ_URL = os.getenv(
+        "RABBITMQ_URL",
+        os.getenv(
+            "CELERY_BROKER_URL",
+            "",
+        ),
+    )
 
-        REDIS_URL = (
-            "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-                redis_password=REDIS_PASSWORD,
-                redis_host=REDIS_HOST,
-                redis_port=REDIS_PORT,
-                redis_db=REDIS_DB,
-            )
-        )
+    # if ENV == "dev":
+    #     CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
+    #         user=RABBITMQ_USER,
+    #         password=RABBITMQ_PASSWORD,
+    #         host=RABBITMQ_HOST,
+    #         port=RABBITMQ_PORT,
+    #         vhost=RABBITMQ_VHOST,
+    #     )
+
+    #     CELERY_RESULT_BACKEND = (
+    #         "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+    #             redis_password=REDIS_PASSWORD,
+    #             redis_host=REDIS_HOST,
+    #             redis_port=REDIS_PORT,
+    #             redis_db=REDIS_DB,
+    #         )
+    #     )
+    # else:
+    #     CELERY_BROKER_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
+    #         scheme="amqps",
+    #         user=RABBITMQ_USER,
+    #         password=RABBITMQ_PASSWORD,
+    #         host=RABBITMQ_HOST,
+    #         port=RABBITMQ_PORT,
+    #         vhost=RABBITMQ_VHOST,
+    #     )
+
+    #     RABBITMQ_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
+    #         scheme="amqps",
+    #         user=RABBITMQ_USER,
+    #         password=RABBITMQ_PASSWORD,
+    #         host=RABBITMQ_HOST,
+    #         port=RABBITMQ_PORT,
+    #         vhost=RABBITMQ_VHOST,
+    #     )
+
+    #     CELERY_RESULT_BACKEND = (
+    #         "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+    #             redis_password=REDIS_PASSWORD,
+    #             redis_host=REDIS_HOST,
+    #             redis_port=REDIS_PORT,
+    #             redis_db=REDIS_DB,
+    #         )
+    #     )
+
+    #     REDIS_URL = (
+    #         "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+    #             redis_password=REDIS_PASSWORD,
+    #             redis_host=REDIS_HOST,
+    #             redis_port=REDIS_PORT,
+    #             redis_db=REDIS_DB,
+    #         )
+    #     )
 
     # Rate limiting
     RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
     RATELIMIT_STRATEGY = os.getenv("RATELIMIT_STRATEGY", "fixed-window")
-    RATELIMIT_STORAGE_URI = CELERY_RESULT_BACKEND
+    _redis_auth = (
+        f":{os.getenv('REDIS_PASSWORD')}@" if os.getenv("REDIS_PASSWORD") else ""
+    )
+    RATELIMIT_STORAGE_URI = os.getenv(
+        "REDIS_URL",
+        f"redis://{_redis_auth}{os.getenv('REDIS_HOST', 'localhost')}:{os.getenv('REDIS_PORT', 6379)}/{os.getenv('REDIS_DB', 0)}",
+    )
 
     AUTH_LIMIT_PER_MINUTE = os.getenv("AUTH_LIMIT_PER_MINUTE", "5 per minute")
     AUTH_LIMIT_PER_5_MINUTES = os.getenv("AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
