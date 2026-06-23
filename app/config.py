@@ -88,21 +88,40 @@ class BaseConfig:
 
     # Sendgrid Configs
     SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY", "somestring")
-    CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-        user=RABBITMQ_USER,
-        password=RABBITMQ_PASSWORD,
-        host=RABBITMQ_HOST,
-        port=RABBITMQ_PORT,
-        vhost=RABBITMQ_VHOST,
-    )
-    CELERY_RESULT_BACKEND = (
-        "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-            redis_password=REDIS_PASSWORD,
-            redis_host=REDIS_HOST,
-            redis_port=REDIS_PORT,
-            redis_db=REDIS_DB,
+
+    # ===== Celery Urls
+    if ENV == "dev":
+        CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
+            user=RABBITMQ_USER,
+            password=RABBITMQ_PASSWORD,
+            host=RABBITMQ_HOST,
+            port=RABBITMQ_PORT,
+            vhost=RABBITMQ_VHOST,
         )
-    )
+        CELERY_RESULT_BACKEND = (
+            "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+                redis_password=REDIS_PASSWORD,
+                redis_host=REDIS_HOST,
+                redis_port=REDIS_PORT,
+                redis_db=REDIS_DB,
+            )
+        )
+    else:
+        CELERY_BROKER_URL = "amqps://{user}:{password}@{host}:{port}/{vhost}".format(
+            user=RABBITMQ_USER,
+            password=RABBITMQ_PASSWORD,
+            host=RABBITMQ_HOST,
+            port=RABBITMQ_PORT,
+            vhost=RABBITMQ_VHOST,
+        )
+        CELERY_RESULT_BACKEND = (
+            "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+                redis_password=REDIS_PASSWORD,
+                redis_host=REDIS_HOST,
+                redis_port=REDIS_PORT,
+                redis_db=REDIS_DB,
+            )
+        )
 
 
 class DevelopmentConfig(BaseConfig):
