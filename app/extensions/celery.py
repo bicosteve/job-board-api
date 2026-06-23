@@ -45,7 +45,7 @@ celery = Celery(
 
 if broker_url.startswith("amqps://"):
     # SSL settings for
-    celery.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
+    celery.conf.broker_use_ssl = {"cert_reqs": ssl.CERT_NONE}
 
 if result_backend.startswith("rediss://"):
     celery.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_NONE}
