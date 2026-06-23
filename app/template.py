@@ -35,7 +35,7 @@ swagger_template = {
     },
     "basePath": "/job-board-api/v1/api",
     # "host": SWAGGER_HOST,
-    "schemes": ["http", "https"],
+    "schemes": ["http"],
     "securityDefinitions": {
         "BearerAuth": {
             "type": "apiKey",
