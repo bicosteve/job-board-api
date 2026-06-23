@@ -99,60 +99,6 @@ class BaseConfig:
         ),
     )
 
-    # if ENV == "dev":
-    #     CELERY_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/{vhost}".format(
-    #         user=RABBITMQ_USER,
-    #         password=RABBITMQ_PASSWORD,
-    #         host=RABBITMQ_HOST,
-    #         port=RABBITMQ_PORT,
-    #         vhost=RABBITMQ_VHOST,
-    #     )
-
-    #     CELERY_RESULT_BACKEND = (
-    #         "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-    #             redis_password=REDIS_PASSWORD,
-    #             redis_host=REDIS_HOST,
-    #             redis_port=REDIS_PORT,
-    #             redis_db=REDIS_DB,
-    #         )
-    #     )
-    # else:
-    #     CELERY_BROKER_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
-    #         scheme="amqps",
-    #         user=RABBITMQ_USER,
-    #         password=RABBITMQ_PASSWORD,
-    #         host=RABBITMQ_HOST,
-    #         port=RABBITMQ_PORT,
-    #         vhost=RABBITMQ_VHOST,
-    #     )
-
-    #     RABBITMQ_URL = "{scheme}://{user}:{password}@{host}:{port}/{vhost}".format(
-    #         scheme="amqps",
-    #         user=RABBITMQ_USER,
-    #         password=RABBITMQ_PASSWORD,
-    #         host=RABBITMQ_HOST,
-    #         port=RABBITMQ_PORT,
-    #         vhost=RABBITMQ_VHOST,
-    #     )
-
-    #     CELERY_RESULT_BACKEND = (
-    #         "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-    #             redis_password=REDIS_PASSWORD,
-    #             redis_host=REDIS_HOST,
-    #             redis_port=REDIS_PORT,
-    #             redis_db=REDIS_DB,
-    #         )
-    #     )
-
-    #     REDIS_URL = (
-    #         "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
-    #             redis_password=REDIS_PASSWORD,
-    #             redis_host=REDIS_HOST,
-    #             redis_port=REDIS_PORT,
-    #             redis_db=REDIS_DB,
-    #         )
-    #     )
-
     # Rate limiting
     RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
     RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
