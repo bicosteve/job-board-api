@@ -8,6 +8,9 @@ load_dotenv()
 class BaseConfig:
     """Base configuration"""
 
+    # Env
+    ENV = os.getenv("ENV", "dev")
+
     # General Flask
     DEBUG = bool(os.getenv("DEBUG", "False").lower() == "true")
     PORT = int(os.getenv("PORT", 5005))
@@ -28,7 +31,6 @@ class BaseConfig:
     DB_PORT = int(os.getenv("DB_PORT", 3306))
 
     # Redis
-    ENV = os.getenv("ENV", "dev")
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
     REDIS_USERNAME = os.getenv("REDIS_USERNAME", "")
     REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
@@ -37,31 +39,12 @@ class BaseConfig:
     REDIS_TLS = os.getenv("REDIS_TLS", "false").lower() == "true"
     REDIS_URL = os.getenv("REDIS_URL")
 
-    # Rate limiting
-    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
-    RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
-    RATELIMIT_STRATEGY = os.getenv("RATELIMIT_STRATEGY", "fixed-window")
-    _REDIS_AUTH = f":{REDIS_PASSWORD}@" if REDIS_PASSWORD else ""
-    RATELIMIT_STORAGE_URI = os.getenv(
-        "RATELIMIT_STORAGE_URI",
-        f"redis://{_REDIS_AUTH}{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}",
-    )
-
-    AUTH_LIMIT_PER_MINUTE = os.getenv("AUTH_LIMIT_PER_MINUTE", "5 per minute")
-    AUTH_LIMIT_PER_5_MINUTES = os.getenv("AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
-    AUTH_LIMIT_PER_10_MINUTES = os.getenv(
-        "AUTH_LIMIT_PER_10_MINUTES", "20 per 10 minutes"
-    )
-    AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
-
     # RabbitMQ
     RABBITMQ_USER = os.getenv("RABBITMQ_USER", "guest")
     RABBITMQ_PASSWORD = os.getenv("RABBITMQ_PASSWORD", "guest")
     RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
     RABBITMQ_PORT = int(os.getenv("RABBITMQ_PORT", "5672"))
     RABBITMQ_VHOST = os.getenv("RABBITMQ_VHOST", "/")
-    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
-    RABBITMQ_URL = os.getenv("RABBITMQ_URL")
 
     # API
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
@@ -98,6 +81,7 @@ class BaseConfig:
             port=RABBITMQ_PORT,
             vhost=RABBITMQ_VHOST,
         )
+
         CELERY_RESULT_BACKEND = (
             "redis://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
                 redis_password=REDIS_PASSWORD,
@@ -114,6 +98,15 @@ class BaseConfig:
             port=RABBITMQ_PORT,
             vhost=RABBITMQ_VHOST,
         )
+
+        RABBITMQ_URL = "amqps://{user}:{password}@{host}:{port}/{vhost}".format(
+            user=RABBITMQ_USER,
+            password=RABBITMQ_PASSWORD,
+            host=RABBITMQ_HOST,
+            port=RABBITMQ_PORT,
+            vhost=RABBITMQ_VHOST,
+        )
+
         CELERY_RESULT_BACKEND = (
             "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
                 redis_password=REDIS_PASSWORD,
@@ -122,6 +115,28 @@ class BaseConfig:
                 redis_db=REDIS_DB,
             )
         )
+
+        REDIS_URL = (
+            "rediss://:{redis_password}@{redis_host}:{redis_port}/{redis_db}".format(
+                redis_password=REDIS_PASSWORD,
+                redis_host=REDIS_HOST,
+                redis_port=REDIS_PORT,
+                redis_db=REDIS_DB,
+            )
+        )
+
+    # Rate limiting
+    RATELIMIT_ENABLED = os.getenv("RATELIMIT_ENABLED", "true").lower() == "true"
+    RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true").lower() == "true"
+    RATELIMIT_STRATEGY = os.getenv("RATELIMIT_STRATEGY", "fixed-window")
+    RATELIMIT_STORAGE_URI = CELERY_RESULT_BACKEND
+
+    AUTH_LIMIT_PER_MINUTE = os.getenv("AUTH_LIMIT_PER_MINUTE", "5 per minute")
+    AUTH_LIMIT_PER_5_MINUTES = os.getenv("AUTH_LIMIT_PER_5_MINUTES", "10 per 5 minutes")
+    AUTH_LIMIT_PER_10_MINUTES = os.getenv(
+        "AUTH_LIMIT_PER_10_MINUTES", "20 per 10 minutes"
+    )
+    AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
 
 
 class DevelopmentConfig(BaseConfig):

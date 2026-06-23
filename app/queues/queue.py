@@ -16,10 +16,9 @@ class RabbitMQ:
         """
 
         if "rabbitmq_channel" not in g:
-            broker_url = (
-                current_app.config["CELERY_BROKER_URL"]
-                or current_app.config["RABBITMQ_URL"]
-            )
+            broker_url = current_app.config.get("CELERY_BROKER_URL")
+            if not broker_url:
+                raise ValueError("RABBITMQ_URL not provided!")
 
             if broker_url:
                 parsed = urlparse(broker_url)
