@@ -13,11 +13,11 @@ class Cache:
         """
         if "redis" not in g:
             # Supports full URL if provided (Upstash, Railway, Render etc)
-            redis_url = current_app.config.get("REDIS_URL")
-            if not redis_url:
-                raise ValueError("REDIS_URL string not provided!")
-
-            if redis_url:
+            # Check if the ENV is not dev
+            if current_app.config.get("ENV") != "dev":
+                redis_url = current_app.config.get("REDIS_URL")
+                if not redis_url:
+                    raise ValueError("REDIS_URL string not provided!")
                 g.redis = redis.from_url(redis_url, decode_response=True)
             else:
                 # Fallback to individul config values (local dev)
