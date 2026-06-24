@@ -28,9 +28,6 @@ def get_swagger_host_and_schemes():
 
 
 SWAGGER_HOST, SWAGGER_SCHEMES = get_swagger_host_and_schemes()
-SWAGGER_BASE_PATH = _clean_base_path(
-    os.getenv("SWAGGER_BASE_PATH", os.getenv("API_VERSION_BASE", "/v1/api"))
-)
 
 swagger_template = {
     "info": {
@@ -42,7 +39,12 @@ swagger_template = {
             "email": os.getenv("CONTACT_EMAIL", "devbico@gmail.com"),
         },
     },
-    "basePath": SWAGGER_BASE_PATH,
+    "basePath": _clean_base_path(
+        os.getenv("SWAGGER_BASE_PATH")
+        or os.getenv("API_VERSION_BASE")
+        or os.getenv("API_BASE")
+        or "/v1/api"
+    ),
     "host": SWAGGER_HOST,
     "schemes": SWAGGER_SCHEMES,
     "securityDefinitions": {

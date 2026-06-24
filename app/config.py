@@ -7,6 +7,30 @@ env_path = Path(__file__).resolve().parent.parent / ".env"
 load_dotenv(dotenv_path=env_path, override=True)
 
 
+def _normalize_path(path, default="/"):
+    """Normalize a URL path so it starts with one slash and has no trailing slash."""
+    path = (path or default or "/").strip()
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return path.rstrip("/") or "/"
+
+
+def _normalize_prefix(path):
+    """Normalize a mounted public prefix. Empty means the app is not mounted."""
+    path = (path or "").strip()
+    if not path or path == "/":
+        return ""
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return path.rstrip("/")
+
+
+def _join_url_paths(*parts):
+    """Join URL path fragments without introducing duplicate slashes."""
+    cleaned = [str(part).strip("/") for part in parts if part and str(part).strip("/")]
+    return f"/{'/'.join(cleaned)}" if cleaned else "/"
+
+
 class BaseConfig:
     """Base configuration"""
 
@@ -119,7 +143,24 @@ class BaseConfig:
     )
     AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
 
-    API_BASE = os.getenv("API_VERSION_BASE", "/job-board-api/v1/api")
+    # Flask route base. Your current nginx config preserves /job-board-api when
+    # proxying to gunicorn, and local testing also uses /job-board-api/... URLs.
+    # Therefore the Flask routes must include the public prefix by default.
+    API_BASE = _normalize_path(
+        os.getenv("API_BASE") or os.getenv("API_VERSION_BASE"), "/v1/api"
+    )
+
+    # Public mount prefix added by the reverse proxy. Example: /job-board-api.
+    PUBLIC_URL_PREFIX = _normalize_prefix(os.getenv("PUBLIC_URL_PREFIX"))
+
+    # Public Swagger basePath used by Swagger UI "Try it out" requests.
+    # In production behind nginx this should usually be /job-board-api/v1/api.
+    SWAGGER_BASE_PATH = _normalize_path(
+        os.getenv("SWAGGER_BASE_PATH")
+        or os.getenv("API_VERSION_BASE")
+        or _join_url_paths(PUBLIC_URL_PREFIX, API_BASE),
+        API_BASE,
+    )
 
 
 class DevelopmentConfig(BaseConfig):
