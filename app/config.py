@@ -31,6 +31,19 @@ def _join_url_paths(*parts):
     return f"/{'/'.join(cleaned)}" if cleaned else "/"
 
 
+def _derive_public_prefix(public_base, internal_base):
+    """Derive /job-board-api from /job-board-api/v1/api + /v1/api."""
+    public_base = _normalize_path(public_base, "") if public_base else ""
+    internal_base = _normalize_path(internal_base, "/")
+    if (
+        public_base
+        and public_base != internal_base
+        and public_base.endswith(internal_base)
+    ):
+        return _normalize_prefix(public_base[: -len(internal_base)])
+    return ""
+
+
 class BaseConfig:
     """Base configuration"""
 
@@ -143,15 +156,16 @@ class BaseConfig:
     )
     AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
 
-    # Flask route base. Your current nginx config preserves /job-board-api when
-    # proxying to gunicorn, and local testing also uses /job-board-api/... URLs.
-    # Therefore the Flask routes must include the public prefix by default.
-    API_BASE = _normalize_path(
-        os.getenv("API_BASE") or os.getenv("API_VERSION_BASE"), "/v1/api"
-    )
+    # Internal Flask route base. Keep this prefix-free. Nginx should strip the
+    # public /job-board-api mount before proxying requests to gunicorn.
+    API_BASE = _normalize_path(os.getenv("API_BASE"), "/v1/api")
 
     # Public mount prefix added by the reverse proxy. Example: /job-board-api.
-    PUBLIC_URL_PREFIX = _normalize_prefix(os.getenv("PUBLIC_URL_PREFIX"))
+    # If API_VERSION_BASE=/job-board-api/v1/api, derive /job-board-api from it.
+    PUBLIC_URL_PREFIX = _normalize_prefix(
+        os.getenv("PUBLIC_URL_PREFIX")
+        or _derive_public_prefix(os.getenv("API_VERSION_BASE"), API_BASE)
+    )
 
     # Public Swagger basePath used by Swagger UI "Try it out" requests.
     # In production behind nginx this should usually be /job-board-api/v1/api.
