@@ -62,7 +62,7 @@ EXPOSE ${PORT}
 
 # Basic container healthcheck against the app's health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD python -c "import os,urllib.request,sys; path=os.environ.get('HEALTHCHECK_PATH','/v1/api/health/check'); sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','5005')+path, timeout=4).status==200 else sys.exit(1)" || exit 1
+    CMD python -c "import os,urllib.request,sys; path=os.environ.get('HEALTHCHECK_PATH','/job-board-api/v1/api/health/check'); sys.exit(0) if urllib.request.urlopen('http://127.0.0.1:'+os.environ.get('PORT','5005')+path, timeout=4).status==200 else sys.exit(1)" || exit 1
 
 # Run the app with gunicorn (production WSGI server).
 # run.py exposes the Flask app instance as `app`.
