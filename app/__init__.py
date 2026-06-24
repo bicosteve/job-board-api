@@ -35,11 +35,14 @@ def create_app():
     app.config.from_object(config_map.get(env, DevelopmentConfig))
 
     # Swagger init
-    app.config["APPLICATION_ROOT"] = "/job-board-api"
+    app.config["APPLICATION_ROOT"] = "/job-board-api/v1/api"
     app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1)
     Swagger(
         app,
-        config={"specs_route": "/job-board-api/v1/api/apidocs/"},
+        config={
+            "specs_route": "/job-board-api/v1/api/apidocs/",
+            "url_prefix": "/job-board-api/v1/api",
+        },
         template=swagger_template,
     )
 
