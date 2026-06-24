@@ -45,7 +45,7 @@ def create_app():
             "specs": [
                 {
                     "endpoint": "apispec",
-                    "route": "/v1/api/apispec.json",
+                    "route": f"{app.config.get('API_BASE', '/job-board-api/v1/api')}/apispec.json",
                     "rule_filter": lambda rule: True,
                     "model_filter": lambda tag: True,
                 },
