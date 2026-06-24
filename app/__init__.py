@@ -49,7 +49,7 @@ def create_app():
                     "model_filter": lambda tag: True,
                 },
             ],
-            "static_url_path": "/flasgger_static",
+            "static_url_path": "/job-board-api/flasgger_static",
             "swagger_ui": True,
             "specs_route": "/job-board-api/v1/api/apidocs/",
         },
