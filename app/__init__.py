@@ -35,9 +35,16 @@ def create_app():
     app.config.from_object(config_map.get(env, DevelopmentConfig))
 
     # Swagger init
-    # app.config["APPLICATION_ROOT"] = "/job-board-api/v1/api"
-    app.config["APPLICATION_ROOT"] = "/job-board-api"
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1)
+    # Keep Flask/Flasgger routes on the same internal base as the API. If the
+    # app is mounted behind nginx at /job-board-api, ProxyFix +
+    # X-Forwarded-Prefix will make url_for() generate public URLs with that
+    # prefix without registering duplicate /job-board-api routes internally.
+    public_url_prefix = app.config.get("PUBLIC_URL_PREFIX", "")
+    if public_url_prefix:
+        app.config["APPLICATION_ROOT"] = public_url_prefix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1, x_proto=1)
+
+    api_base = app.config.get("API_BASE", "/v1/api")
     Swagger(
         app,
         config={
@@ -45,14 +52,17 @@ def create_app():
             "specs": [
                 {
                     "endpoint": "apispec",
-                    "route": f"{app.config.get('API_BASE', '/job-board-api/v1/api')}/apispec.json",
+                    "route": f"{api_base}/apispec.json",
                     "rule_filter": lambda rule: True,
                     "model_filter": lambda tag: True,
                 },
             ],
             "static_url_path": "/flasgger_static",
             "swagger_ui": True,
-            "specs_route": "/job-board-api/v1/api/apidocs/",
+            "specs_route": f"{api_base}/apidocs/",
+            # Flasgger's default template renders this directly into JS; None
+            # becomes invalid JavaScript, so keep it as an empty object.
+            "auth": {},
         },
         template=swagger_template,
     )
