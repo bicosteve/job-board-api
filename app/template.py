@@ -9,7 +9,7 @@ load_dotenv(dotenv_path=env_path, override=True)
 
 def _clean_base_path(path: str) -> str:
     """Return a normalized Swagger/OpenAPI basePath value."""
-    path = (path or "/v1/api").strip()
+    path = (path or "/").strip()
     if not path.startswith("/"):
         path = f"/{path}"
     return path.rstrip("/") or "/"
@@ -29,6 +29,16 @@ def get_swagger_host_and_schemes():
 
 SWAGGER_HOST, SWAGGER_SCHEMES = get_swagger_host_and_schemes()
 
+# Important:
+# Flasgger already includes the registered Flask route in each Swagger path,
+# e.g. /v1/api/health/check. Therefore basePath must contain only the public
+# reverse-proxy mount prefix, not the API route base again.
+# Local: basePath=/ + path=/v1/api/... => /v1/api/...
+# Prod:  basePath=/job-board-api + path=/v1/api/... => /job-board-api/v1/api/...
+SWAGGER_BASE_PATH = _clean_base_path(
+    os.getenv("SWAGGER_BASE_PATH") or os.getenv("PUBLIC_URL_PREFIX") or "/"
+)
+
 swagger_template = {
     "info": {
         "title": "Job Board API",
@@ -39,12 +49,7 @@ swagger_template = {
             "email": os.getenv("CONTACT_EMAIL", "devbico@gmail.com"),
         },
     },
-    "basePath": _clean_base_path(
-        os.getenv("SWAGGER_BASE_PATH")
-        or os.getenv("API_VERSION_BASE")
-        or os.getenv("API_BASE")
-        or "/v1/api"
-    ),
+    "basePath": SWAGGER_BASE_PATH,
     "host": SWAGGER_HOST,
     "schemes": SWAGGER_SCHEMES,
     "securityDefinitions": {
