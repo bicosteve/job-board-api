@@ -36,7 +36,7 @@ def create_app():
 
     # Swagger init
     # app.config["APPLICATION_ROOT"] = "/job-board-api/v1/api"
-    app.config["APPLICATION_ROOT"] = "/"
+    app.config["APPLICATION_ROOT"] = "/job-board-api"
     app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1)
     Swagger(
         app,
@@ -45,7 +45,7 @@ def create_app():
             "specs": [
                 {
                     "endpoint": "apispec",
-                    "route": "/job-board-api/v1/api/apispec.json",
+                    "route": "/v1/api/apispec.json",
                     "rule_filter": lambda rule: True,
                     "model_filter": lambda tag: True,
                 },
