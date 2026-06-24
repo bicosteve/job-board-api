@@ -1,24 +1,36 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path, override=True)
+
+
+def _clean_base_path(path: str) -> str:
+    """Return a normalized Swagger/OpenAPI basePath value."""
+    path = (path or "/v1/api").strip()
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return path.rstrip("/") or "/"
 
 
 def get_swagger_host_and_schemes():
-    env = os.getenv("ENV")
+    env = os.getenv("ENV", "dev").lower()
     render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
     server_host = os.getenv("SERVER_HOST")
+
     if env == "dev":
-        return "127.0.0.1:5005", ["http"]
-    elif env == "prod":
-        return server_host, ["http"]
-    else:
-        return render_host, ["https"]
+        return os.getenv("SWAGGER_HOST", "127.0.0.1:5005"), ["http"]
+    if env == "prod":
+        return os.getenv("SWAGGER_HOST", server_host), ["http"]
+    return os.getenv("SWAGGER_HOST", render_host), ["https"]
 
 
 SWAGGER_HOST, SWAGGER_SCHEMES = get_swagger_host_and_schemes()
-
+SWAGGER_BASE_PATH = _clean_base_path(
+    os.getenv("SWAGGER_BASE_PATH", os.getenv("API_VERSION_BASE", "/v1/api"))
+)
 
 swagger_template = {
     "info": {
@@ -30,7 +42,7 @@ swagger_template = {
             "email": os.getenv("CONTACT_EMAIL", "devbico@gmail.com"),
         },
     },
-    "basePath": "/job-board-api/v1/api",
+    "basePath": SWAGGER_BASE_PATH,
     "host": SWAGGER_HOST,
     "schemes": SWAGGER_SCHEMES,
     "securityDefinitions": {
