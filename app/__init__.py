@@ -40,8 +40,18 @@ def create_app():
     Swagger(
         app,
         config={
+            "headers": [],
+            "specs": [
+                {
+                    "endpoint": "apispec",
+                    "route": "/job-board-api/v1/api/apispec.json",
+                    "rule_filter": lambda rule: True,
+                    "model_filter": lambda tag: True,
+                },
+            ],
+            "static_url_path": "/flasgger_static",
+            "swagger_ui": True,
             "specs_route": "/job-board-api/v1/api/apidocs/",
-            "url_prefix": "/job-board-api/v1/api",
         },
         template=swagger_template,
     )
