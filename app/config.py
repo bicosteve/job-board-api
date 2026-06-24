@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 class BaseConfig:
@@ -49,8 +49,7 @@ class BaseConfig:
     # API
     API_VERSION = os.getenv("API_VERSION", "1.0.0")
     CONTACT_NAME = os.getenv("CONTACT_NAME", "bicosteve")
-    CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "***")
-    API_BASE = os.getenv("API_VERSION_BASE", "/v1/api")
+    CONTACT_EMAIL = os.getenv("CONTACT_EMAIL", "devbico@gmail.com")
 
     # Docker subnet
     SUBNET = os.getenv("SUBNET", "172.25.0.0/16")
@@ -117,6 +116,8 @@ class BaseConfig:
         "AUTH_LIMIT_PER_10_MINUTES", "20 per 10 minutes"
     )
     AUTH_LIMIT_PER_HOUR = os.getenv("AUTH_LIMIT_PER_HOUR", "50 per hour")
+
+    API_BASE = os.getenv("API_VERSION_BASE", "/job-board-api/v1/api")
 
 
 class DevelopmentConfig(BaseConfig):

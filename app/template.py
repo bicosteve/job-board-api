@@ -7,17 +7,14 @@ load_dotenv()
 
 def get_swagger_host_and_schemes():
     env = os.getenv("ENV")
-    host = "127.0.0.1:5005"
     render_host = os.getenv("RENDER_EXTERNAL_HOSTNAME")
-    # other_host = os.getenv("OTHER_EXTERNAL_HOSTNAME")
+    server_host = os.getenv("SERVER_HOST")
     if env == "dev":
-        schemes = ["http"]
-        host = host
+        return "127.0.0.1:5005", ["http"]
+    elif env == "prod":
+        return server_host, ["http"]
     else:
-        schemes = ["http"]
-        host = render_host
-
-    return host, schemes
+        return render_host, ["https"]
 
 
 SWAGGER_HOST, SWAGGER_SCHEMES = get_swagger_host_and_schemes()
@@ -34,8 +31,8 @@ swagger_template = {
         },
     },
     "basePath": "/job-board-api/v1/api",
-    # "host": SWAGGER_HOST,
-    "schemes": ["http"],
+    "host": SWAGGER_HOST,
+    "schemes": SWAGGER_SCHEMES,
     "securityDefinitions": {
         "BearerAuth": {
             "type": "apiKey",

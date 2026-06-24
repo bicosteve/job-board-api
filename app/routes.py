@@ -1,48 +1,46 @@
 from flask_restful import Api
 
-from .controllers.user_controllers import (
-    RegisterUserController,
-    LoginUserController,
-    UserProfileController,
-    VerifyUserAccountController,
-    RequestUserPasswordResetController,
-    ResetUserPasswordController,
-    CheckAppHealthController
-)
 from .controllers.admin_controllers import (
-    RegisterAdminController,
     LoginAdminController,
-    VerifyAdminAccountController
+    RegisterAdminController,
+    VerifyAdminAccountController,
 )
+from .controllers.application_controllers import (
+    AdminApplicationsStreamController,
+    ApplicationsCreateController,
+    ApplicationsListController,
+    ApplicationUpdateController,
+    UserApplicationsStreamController,
+    UsersJobApplicationController,
+    UsersJobApplicationsController,
+)
+from .controllers.education_controllers import EducationController
+from .controllers.file_controllers import FileUploadController
 from .controllers.job_controllers import (
-    PostJobController,
-    JobsListController,
+    AdminJobsListController,
     JobObjectController,
+    JobsListController,
     ModifyJobObjectController,
-    AdminJobsListController
-)
-from .controllers.education_controllers import (
-    EducationController
+    PostJobController,
 )
 from .controllers.profile_controllers import (
     ProfileCreateController,
-    ProfileGetController
+    ProfileGetController,
 )
-
-from .controllers.application_controllers import (
-    ApplicationsListController,
-    ApplicationsCreateController,
-    UserApplicationsStreamController,
-    AdminApplicationsStreamController,
-    UsersJobApplicationsController,
-    UsersJobApplicationController,
-    ApplicationUpdateController
+from .controllers.user_controllers import (
+    CheckAppHealthController,
+    LoginUserController,
+    RegisterUserController,
+    RequestUserPasswordResetController,
+    ResetUserPasswordController,
+    UserProfileController,
+    VerifyUserAccountController,
 )
-from .controllers.file_controllers import FileUploadController
 
 
 def register_routes(app):
-    base = app.config['API_BASE']
+    base = app.config.get("API_BASE")
+    print(f"Base is {base}")
     api = Api(app)
 
     # App Status Check
@@ -52,10 +50,8 @@ def register_routes(app):
     api.add_resource(RegisterUserController, f"{base}/user/register")
     api.add_resource(VerifyUserAccountController, f"{base}/user/verify")
     api.add_resource(LoginUserController, f"{base}/user/login")
-    api.add_resource(RequestUserPasswordResetController,
-                     f"{base}/user/request-reset")
-    api.add_resource(ResetUserPasswordController,
-                     f"{base}/user/reset-password")
+    api.add_resource(RequestUserPasswordResetController, f"{base}/user/request-reset")
+    api.add_resource(ResetUserPasswordController, f"{base}/user/reset-password")
     api.add_resource(UserProfileController, f"{base}/user/me")
 
     # Education Routes
@@ -70,8 +66,7 @@ def register_routes(app):
     api.add_resource(LoginAdminController, f"{base}/admin/login")
     api.add_resource(VerifyAdminAccountController, f"{base}/admin/verify")
 
-    api.add_resource(ModifyJobObjectController,
-                     f"{base}/admin/jobs/<int:job_id>")
+    api.add_resource(ModifyJobObjectController, f"{base}/admin/jobs/<int:job_id>")
 
     # Jobs Routes
     api.add_resource(JobsListController, f"{base}/public/jobs")
@@ -80,24 +75,26 @@ def register_routes(app):
     api.add_resource(AdminJobsListController, f"{base}/admin/jobs/list")
 
     # Job Application Routes
-    api.add_resource(ApplicationsCreateController,
-                     f"{base}/applications/job/create")
-    api.add_resource(ApplicationsListController,
-                     f"{base}/applications/job/list")
-    api.add_resource(UserApplicationsStreamController,
-                     f"{base}/applications/user/stream")
-    api.add_resource(AdminApplicationsStreamController,
-                     f"{base}/applications/admin/stream")
-    api.add_resource(UsersJobApplicationsController,
-                     f"{base}/applications/user/list")
-    api.add_resource(UsersJobApplicationController,
-                     f"{base}/applications/job/<int:application_id>")
-    api.add_resource(ApplicationUpdateController,
-                     f"{base}/applications/job/update/<int:application_id>")
-    api.add_resource(FileUploadController,
-                     f"{base}/files/upload")
+    api.add_resource(ApplicationsCreateController, f"{base}/applications/job/create")
+    api.add_resource(ApplicationsListController, f"{base}/applications/job/list")
+    api.add_resource(
+        UserApplicationsStreamController, f"{base}/applications/user/stream"
+    )
+    api.add_resource(
+        AdminApplicationsStreamController, f"{base}/applications/admin/stream"
+    )
+    api.add_resource(UsersJobApplicationsController, f"{base}/applications/user/list")
+    api.add_resource(
+        UsersJobApplicationController, f"{base}/applications/job/<int:application_id>"
+    )
+    api.add_resource(
+        ApplicationUpdateController,
+        f"{base}/applications/job/update/<int:application_id>",
+    )
+    api.add_resource(FileUploadController, f"{base}/files/upload")
 
-    @app.route('/uploads/<path:filename>')
+    @app.route("/uploads/<path:filename>")
     def uploaded_file(filename):
         from flask import send_from_directory
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+        return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
