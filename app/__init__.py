@@ -35,7 +35,8 @@ def create_app():
     app.config.from_object(config_map.get(env, DevelopmentConfig))
 
     # Swagger init
-    app.config["APPLICATION_ROOT"] = "/job-board-api/v1/api"
+    # app.config["APPLICATION_ROOT"] = "/job-board-api/v1/api"
+    app.config["APPLICATION_ROOT"] = "/"
     app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_host=1)
     Swagger(
         app,
@@ -49,7 +50,7 @@ def create_app():
                     "model_filter": lambda tag: True,
                 },
             ],
-            "static_url_path": "/job-board-api/flasgger_static",
+            "static_url_path": "/flasgger_static",
             "swagger_ui": True,
             "specs_route": "/job-board-api/v1/api/apidocs/",
         },
