@@ -32,9 +32,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     HOST=0.0.0.0 \
     PORT=${APP_PORT} \
-    FLASK_ENV=production \
+    FLASK_ENV=prod \
     FLASK_DEBUG=0 \
-    HEALTHCHECK_PATH=/v0/api/health/check
+    HEALTHCHECK_PATH=/v1/api/health/check
 
 WORKDIR /app
 
